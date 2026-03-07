@@ -11,13 +11,14 @@ rng('default')
 allMethods = {
     '1 - RCIM-2022'
     '2 - Proposed'
-    '3 - TRO-2016'
-    '4 - RCIM-2020'
-    '5 - IROS-2015'
-    '6 - MEAS-2023'};
+    '3 - Proposed (GPU)'
+    '4 - TRO-2016'
+    '5 - RCIM-2020'
+    '6 - IROS-2015'
+    '7 - MEAS-2023'};
 
 % select methods to test
-testedMethods = [1 2 3 4 5 6];
+testedMethods = [1 2 4 5 6 7];
 nMethod = length(testedMethods);
 
 %% Simulation settings
@@ -49,7 +50,7 @@ nm = length(m);
 % for RCIM-2022, MEAS-2023
 % number of positions per orientation
 mt = 3;
-% number if Euler angles
+% number of Euler angles
 mAlpha_ = round(sqrt(m/mt));
 mBeta_ = mAlpha_;
 
@@ -62,8 +63,8 @@ dTheta = deg2rad(5);    % hand-eye orientation (rad)
 
 %% Method settings
 % max iterations for proposed method
-iImax = 100;
-iOmax = 20;
+iImax = 30;
+iOmax = 50;
 
 % convergence tolerance
 tol = 1e-5;
@@ -73,6 +74,10 @@ tol = 1e-5;
 ePos = zeros(nTest, nm, nMethod);
 eRot = zeros(nTest, nm, nMethod);
 Time = zeros(nTest, nm, nMethod);
+
+% loop count for method 2 (plane_Jnt_GH_debug)
+IIout = zeros(nTest, nm);   % max inner loop iterations
+IOout = zeros(nTest, nm);   % outer loop iterations
 
 for im = 1:nm
     % number of measurements
@@ -136,14 +141,17 @@ for im = 1:nm
                     [tO2He,RO2He,ne,de,tH2We,RH2We,sigmae,time] = plane_Jnt_GH(tO2H0,RO2H0,nP0,dP0,sigma0,tH2Wn,RH2Wn,pOn,vOn,iImax,iOmax,tol);
                 case 3
                     % [tH2Wn,RH2Wn,pOn,vOn,scanO] = simPlane(pP,nP,lP,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlphai,mBetai);
-                    [tO2He,RO2He,ne,time] = plane_TRO2016(tO2H0,RO2H0,tH2Wn,RH2Wn,vOn,scanO);
+                    [tO2He,RO2He,ne,de,tH2We,RH2We,sigmae,time] = plane_Jnt_GH_gpu(tO2H0,RO2H0,nP0,dP0,sigma0,tH2Wn,RH2Wn,pOn,vOn,iImax,iOmax,tol);
                 case 4
                     % [tH2Wn,RH2Wn,pOn,vOn,scanO] = simPlane(pP,nP,lP,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlphai,mBetai);
-                    [tO2He,RO2He,ne,time] = plane_RCIM2020(tO2H0,RO2H0,tH2Wn,RH2Wn,pOn,tol);
+                    [tO2He,RO2He,ne,time] = plane_TRO2016(tO2H0,RO2H0,tH2Wn,RH2Wn,vOn,scanO);
                 case 5
+                    % [tH2Wn,RH2Wn,pOn,vOn,scanO] = simPlane(pP,nP,lP,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlphai,mBetai);
+                    [tO2He,RO2He,ne,time] = plane_RCIM2020(tO2H0,RO2H0,tH2Wn,RH2Wn,pOn,tol);
+                case 6
                     [tH2Wn,RH2Wn,pOn] = simIROS2015(nPlane,pPs,nPs,lPs,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlphai,mBetai);
                     [tO2He,RO2He,ne,time] = plane_IROS2015(tO2H0,RO2H0,tH2Wn,RH2Wn,pOn,tol);
-                case 6
+                case 7
                     [tH2Wn,RH2Wn,pcOe] = simMEAS2023(pS,rS,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlpha_i,mBeta_i,mt);
                     [tO2He,RO2He,time] = sphere_MEAS2023(tH2Wn,RH2Wn,pcOe);
                 otherwise
@@ -157,132 +165,64 @@ for im = 1:nm
     end
 end
 
-%% Plot result
+%% Time-number of measurements graph
 % mean (nm x nMethod)
-ePosMean = reshape(mean(ePos, 1), nm, nMethod);
-eRotMean = reshape(mean(eRot, 1), nm, nMethod);
 TimeMean = reshape(mean(Time, 1), nm, nMethod);
 
 % standard deviation
-ePosStd = reshape(std(ePos, 1, 1), nm, nMethod);
-eRotStd = reshape(std(eRot, 1, 1), nm, nMethod);
 TimeStd = reshape(std(Time, 1, 1), nm, nMethod);
 
-figure
-
-% ePos
-subplot(1,2,1)
-semilogy(m, ePosMean, 'LineWidth', 1.5)
-grid on
-
-title('$e_{\rm Pos}$ vs. Number of measurements', 'Interpreter', 'latex')
-xlabel('$m$', 'Interpreter', 'latex')
-ylabel('Position error $(mm)$', 'Interpreter', 'latex')
-legend(allMethods(testedMethods), 'Interpreter', 'latex', 'Location', 'best')
-xlim([m(1) m(end)])
-
-% eRot
-subplot(1,2,2)
-semilogy(m, eRotMean, 'LineWidth', 1.5)
-grid on
-
-title('$e_{\rm Rot}$ vs. Number of measurements', 'Interpreter', 'latex')
-xlabel('$m$', 'Interpreter', 'latex')
-ylabel('Orientation error $(^{\circ})$', 'Interpreter', 'latex')
-legend(allMethods(testedMethods), 'Interpreter', 'latex', 'Location', 'best')
-xlim([m(1) m(end)])
-
-% Time
-figure
-semilogy(m, TimeMean, 'LineWidth', 1.5)
-grid on
-
-title('Computation time vs. Number of measurements', 'Interpreter', 'latex')
-xlabel('Number of meansurements', 'Interpreter', 'latex')
-ylabel('Computation time $(\mathrm{s})$', 'Interpreter', 'latex')
-legend(allMethods(testedMethods), 'Interpreter', 'latex', 'Location', 'best')
-xlim([m(1) m(end)])
-
-%% Time-number of measurements graph
 % legend labels
 legendLabels = {
     'Xu'
-    'Proposed'
+    'Proposed (CPU)'
+    'Proposed (GPU)'
     'Kang'
     'Sharifzadeh'
     'Carlson'
     'Tang'};
 
 % line markers for each method
-markers = {'o','*','s','d','^','v'};
+markers = {'o','*','p','s','d','^','v'};
 
 % figure setting
-fig = figure('Units','centimeters', 'Position',[2 2 4.4 12], 'Color','w');
+fig = figure('Units','centimeters', 'Position',[2 2 8.8 8.8], 'Color','w');
 ax  = axes(fig);
 hold(ax,'on');
 grid(ax,'on');
 box(ax,'on');
 
-% plot each method (in a different order)
-for iMethod = [2 5 3 4 1 6]
-    semilogy(ax, m(3:end), TimeMean(3:end,iMethod), '-', ...
+% plot each method (in a different order, Proposed methods last to stay on top)
+for i = 1:length(testedMethods)
+    plot(ax, m, TimeMean(:,i), '-', ...
         'LineWidth', 1.25, ...
-        'Marker', markers{iMethod}, ...
+        'Marker', markers{testedMethods(i)}, ...
         'MarkerFaceColor', 'w', ...
-        'DisplayName', legendLabels{iMethod});
+        'DisplayName', legendLabels{testedMethods(i)});
 end
 
 % axis tick
 ax.YScale = 'log';
 ax.YMinorGrid = 'on';
 ax.YMinorTick = 'on';
-xlim(ax, [m(3) m(end)]);
-xticks(ax, m(3:end));
-% xticklabels(ax, {'\#1' '\#2' '\#3' '\#4'});
+xlim(ax, [m(1) m(end)]);
+xticks(ax, m);
 ax.TickLabelInterpreter = 'latex';
 ax.FontSize = 9;
 
 % axis label
 xlabel(ax, 'No. of measurements', 'Interpreter', 'latex', 'FontSize', 10);
-ylabel(ax, 'Computation time $(\mathrm{s})$', 'Interpreter', 'latex', 'FontSize', 10);
+ylabel(ax, 'Runtime $[\mathrm{s}]$', 'Interpreter', 'latex', 'FontSize', 10);
 
 % legend
-leg = legend(ax, 'Location','northoutside', 'Interpreter','latex', 'FontSize', 9);
-
-%% Print result for manuscript
-% ePos
-fprintf('\nPosition calibration error\n')
-for iMethod = 1:nMethod
-    fprintf('%s:\n',allMethods{testedMethods(iMethod)})
-    for im = 1:nm
-        fprintf('& \\err{%.3f}{%.3f} ',ePosMean(im,iMethod),ePosStd(im,iMethod))
-    end
-    fprintf('\n')
-end
-
-% eRot
-fprintf('\nOrientation calibration error\n')
-for iMethod = 1:nMethod
-    fprintf('%s:\n',allMethods{testedMethods(iMethod)})
-    for im = 1:nm
-        fprintf('& \\err{%.3f}{%.3f} ',eRotMean(im,iMethod),eRotStd(im,iMethod))
-    end
-    fprintf('\n')
-end
-
-% Time
-fprintf('\nComputation time\n')
-for iMethod = 1:nMethod
-    fprintf('%s:\n',allMethods{testedMethods(iMethod)})
-    for im = 1:nm
-        fprintf('& \\err{%.3f}{%.3f} ',1000*TimeMean(im,iMethod),1000*TimeStd(im,iMethod))
-    end
-    fprintf('\n')
-end
+leg = legend(ax, 'Location','best', 'Interpreter','latex', 'FontSize', 9);
 
 %% Save result
-comments = {};
-
-dateTimeSuffix = string(datetime('now'), 'yyMMdd_HHmm');
-resultFilename = "result/sim_accuracy_vs_number_of_measurements_" + dateTimeSuffix + ".mat";
-save(resultFilename)
+% comments = {};
+% 
+% % Clear figure handles before saving
+% clearvars fig ax leg t
+% 
+% dateTimeSuffix = string(datetime('now'), 'yyMMdd_HHmm');
+% resultFilename = "result/sim_accuracy_vs_number_of_measurements_" + dateTimeSuffix + ".mat";
+% save(resultFilename)

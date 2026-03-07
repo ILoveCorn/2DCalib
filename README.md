@@ -1,13 +1,10 @@
-# Cross-scale Hand-eye Calibration of 2D Optical Coherence Tomography using a Plane Target
+# Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2D Optical Coherence Tomography using a Plane Target
 
 This repository provides MATLAB implementations, datasets, and evaluation utilities for cross-scale hand-eye calibration of 2D Optical Coherence Tomography (OCT) using a plane target.
 
 ## Environment
 
 - **MATLAB**: R2024b
-- **Required toolbox**: Parallel Computing Toolbox
-
-To accelerate computation, make sure your MATLAB installation includes the Parallel Computing Toolbox before running the scripts or simulations.
 
 ## Directory structure
 

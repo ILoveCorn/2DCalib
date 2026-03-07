@@ -18,7 +18,7 @@ sigmaRd = 0.1;              % orientation (degree)
 sigmaR = deg2rad(sigmaRd);  % orientation (rad)
 sigmaO = 0;                 % image (mm)
 
-% noise covariance
+% noise covariance isotropic
 Sigmat = sigmat^2*eye(3);
 SigmaR = sigmaR^2*eye(3);
 
@@ -41,7 +41,7 @@ dTheta = deg2rad(5);    % hand-eye orientation (rad)
 
 %% Method settings
 % max iterations for proposed method
-iImax = 100;
+iImax = 30;
 
 % convergence tolerance
 tol = 1e-5;
@@ -75,7 +75,7 @@ for iTest = 1:nTest
     [tH2Wn,RH2Wn,pOn,vOn,scanO] = simPlane(pP,nP,lP,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlpha,mBeta);
 
     % 1 - w/ VFE
-    iOmax = 20;
+    iOmax = 50;
 
     % random initial variance factor
     kMin = 0.75;
@@ -114,7 +114,7 @@ nexttile
 bRot = boxplot(eRot,'Labels',labels);
 grid on
 box on
-ylabel('$\varepsilon_{\mathbf{R}} \; (^\circ)$','Interpreter','latex')
+ylabel('$\varepsilon_{\mathbf{R}} \; [^\circ]$','Interpreter','latex')
 set(gca,'FontName','Times New Roman','FontSize',9,'TickLabelInterpreter','latex');
 
 set(findobj(bRot,'Tag','Median'),'LineWidth',2.0);
@@ -126,16 +126,38 @@ nexttile
 bPos = boxplot(ePos,'Labels',labels);
 grid on
 box on
-ylabel('$\varepsilon_{\mathbf{t}} \; (\mathrm{mm})$','Interpreter','latex')
+ylabel('$\varepsilon_{\mathbf{t}} \; [\mathrm{mm}]$','Interpreter','latex')
 set(gca,'FontName','Times New Roman','FontSize',9,'TickLabelInterpreter','latex');
 
 set(findobj(bPos,'Tag','Median'),'LineWidth',2.0);
 set(findobj(bPos,'Tag','Box'),'LineWidth',1.2);
 set(findobj(bPos,'Tag','Whisker'),'LineWidth',1.2);
 
-%% Save result
-comments = {};
+%% Display accuracy of estimated variance factors
+% Ground truth (convert σ_R to degrees for reporting)
+sigma_gt = [sigmat, sigmaR];
+sigma_gt_deg = [sigmat, sigmaRd];  % for display in degrees
+allSigmae_deg = [allSigmae(:,1), rad2deg(allSigmae(:,2))];  % convert estimated σ_R to degrees
 
-dateTimeSuffix = string(datetime('now'), 'yyMMdd_HHmm');
-resultFilename = "result/sim_accuracy_vs_VFE_" + dateTimeSuffix + ".mat";
-save(resultFilename)
+% Estimation error (in degrees for orientation)
+sigmaError_deg = allSigmae_deg - sigma_gt_deg;
+sigmaErrorRel = 100 * sigmaError_deg ./ sigma_gt_deg;  % relative error (%)
+
+% Statistics
+fprintf('\n');
+fprintf('================================================================================\n');
+fprintf('              Accuracy of Variance Factor Estimation (VFE)\n');
+fprintf('================================================================================\n');
+fprintf('Ground truth:  σ_t = %.4f mm,  σ_R = %.4f°\n', sigmat, sigmaRd);
+fprintf('--------------------------------------------------------------------------------\n');
+fprintf('                              σ_t (mm)           σ_R (°)\n');
+fprintf('--------------------------------------------------------------------------------\n');
+fprintf('Ground truth:              %10.4f          %10.4f\n', sigma_gt_deg(1), sigma_gt_deg(2));
+fprintf('Estimated (median(IQR)): %7.4f (%.4f)    %7.4f (%.4f)\n', ...
+    median(allSigmae_deg(:,1)), iqr(allSigmae_deg(:,1)), median(allSigmae_deg(:,2)), iqr(allSigmae_deg(:,2)));
+fprintf('--------------------------------------------------------------------------------\n');
+fprintf('Absolute error (median(IQR)): %7.4f (%.4f)    %7.4f (%.4f)\n', ...
+    median(sigmaError_deg(:,1)), iqr(sigmaError_deg(:,1)), median(sigmaError_deg(:,2)), iqr(sigmaError_deg(:,2)));
+fprintf('Relative error (median(IQR)): %7.2f%% (%.2f%%)    %7.2f%% (%.2f%%)\n', ...
+    median(sigmaErrorRel(:,1)), iqr(sigmaErrorRel(:,1)), median(sigmaErrorRel(:,2)), iqr(sigmaErrorRel(:,2)));
+fprintf('================================================================================\n');

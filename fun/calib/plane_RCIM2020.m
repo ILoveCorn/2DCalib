@@ -1,9 +1,19 @@
 function [tO2He,RO2He,ne,time] = plane_RCIM2020(tO2He,RO2He,tH2Wn,RH2Wn,pOn,tol)
-%PLANE_RCIM2020 implementation of https://doi.org/10.1016/j.rcim.2019.101823
-%   Scheme: PCA -> two-step
-%   Parameterization: <SO(3),R(3)>
-%   Solver: linear least square
-%   v1.0 2025-03-14
+%PLANE_RCIM2020
+%   Implementation of https://doi.org/10.1016/j.rcim.2019.101823
+%
+%   Input:
+%       tO2He: initial hand-eye position            (3 x 1)
+%       RO2He: initial hand-eye orientation         (3 x 3)
+%       tH2Wn: hand-world position with noise       (3 x 1 x m)
+%       RH2Wn: hand-world orientation with noise    (3 x 3 x m)
+%       pOn: intersection in OCT frame              (3 x 1 x m)
+%       tol: convergence tolerance
+%   Output:
+%       tO2He: estimated hand-eye position          (3 x 1)
+%       RO2He: estimated hand-eye orientation       (3 x 3)
+%       ne: estimated plane normal                  (3 x 1)
+%       time: computation time
 
 % control variables
 i = 1;

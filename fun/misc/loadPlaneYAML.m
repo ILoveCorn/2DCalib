@@ -1,5 +1,5 @@
 function [tH2Wn,RH2Wn,pOn,vOn,scanO] = loadPlaneYAML(filename)
-%loadPlaneYAML
+%LOADPLANEYAML
 %   Load plane calibration data from yaml for OCT / LiDAR (obsolete)
 %
 %   Input:

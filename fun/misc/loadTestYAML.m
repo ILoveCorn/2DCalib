@@ -1,11 +1,14 @@
 function [tH2Wn,RH2Wn,scanO,centerSignY] = loadTestYAML(filename)
-%LOADTESTYAML Load test data from yaml
-%   filename - xxx.yaml
+%LOADTESTYAML
+%   Load test data from yaml
 %
-%   tH2Wn - hand position in world frame with noise     (3 x 1 x m)
-%   RH2Wn - hand orientation in world frame with noise  (3 x 3 x m)
-%   scanO - raw scan points                             ({3 x mpi} x m cell)
-%   centerSignY - sign of sphere center's y-coordinate  (1 x m)
+%   Input:
+%       filename: path to yaml file
+%   Output:
+%       tH2Wn: hand-world position with noise           (3 x 1 x m)
+%       RH2Wn: hand-world orientation                   (3 x 3 x m)
+%       scanO: raw scan points                          ({3 x mpi} x m cell)
+%       centerSignY: sign of sphere center y-coordinate (1 x m)
 
 % load yaml
 yamlData = yaml.loadFile(filename);

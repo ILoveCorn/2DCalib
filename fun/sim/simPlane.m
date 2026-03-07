@@ -1,21 +1,21 @@
 function [tH2Wn,RH2Wn,pOn,vOn,scanO] = simPlane(pP,nP,lP,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlpha,mBeta)
-%SIMPLANE plane calibration simulation
+%SIMPLANE
+%   Plane calibration simulation
 %
 %   Input:
 %       pP, nP, lP: plane center position, normal, side length
-%       xMax, zMax: lateral, axial FOV
+%       xMax, zMax: lateral and axial FOV
 %       tO2H, RO2H: hand-eye transformation
-%       sigmat, sigmaR, sigmaO: std of position, orientation, image noise
-%       Sigmat, SigmaR: covariance of position, orientation noise
+%       Sigmat, SigmaR: covariance of position and orientation noise
 %       sigmaO: std of image noise
 %       alphaMax, betaMax: max Euler angle
-%       mAlpha, mBeta: number of alpha, beta angles
+%       mAlpha, mBeta: number of alpha and beta angles
 %   Output:
-%       tH2Wn - noisy hand-world position               (3 x 1 x m)
-%       RH2Wn - noisy hand-world orientation            (3 x 3 x m)
-%       pOn   - intersection position in OCT frame      (3 x 1 x m)
-%       vOn   - intersection direction in OCT frame     (3 x 1 x m)
-%       scanO - intersection points in OCT frame        (3 x npO x m)
+%       tH2Wn: noisy hand-world position            (3 x 1 x m)
+%       RH2Wn: noisy hand-world orientation         (3 x 3 x m)
+%       pOn: intersection position in OCT frame     (3 x 1 x m)
+%       vOn: intersection direction in OCT frame    (3 x 1 x m)
+%       scanO: intersection points in OCT frame     (3 x npO x m)
 
 % number of measurements
 m = mAlpha*mBeta;

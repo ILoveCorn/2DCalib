@@ -1,20 +1,20 @@
 function [tH2Wn,RH2Wn,pcOe] = simMEAS2023(pS,rS,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlpha,mBeta,mt)
-%SIMMEAS2023 simulation of https://doi.org/10.1016/j.measurement.2023.112936
+%SIMMEAS2023
+%   Simulation of https://doi.org/10.1016/j.measurement.2023.112936
 %
 %   Input:
 %       pS, rS: sphere center position, radius
-%       xMax, zMax: lateral, axial FOV
+%       xMax, zMax: lateral and axial FOV
 %       tO2H, RO2H: hand-eye transformation
-%       sigmat, sigmaR, sigmaO: std of position, orientation, image noise
-%       Sigmat, SigmaR: covariance of position, orientation noise
+%       Sigmat, SigmaR: covariance of position and orientation noise
 %       sigmaO: std of image noise
 %       alphaMax, betaMax: max Euler angle
-%       mAlpha, mBeta: number of alpha, beta angles
+%       mAlpha, mBeta: number of alpha and beta angles
 %       mt: number of measurements per orientation
 %   Output:
-%       tH2Wn - noisy hand-world position           (3 x mt x mR)
-%       RH2Wn - noisy hand-world orientation        (3 x 3 x mR)
-%       pcOe  - fitted sphere center in OCT frame   (3 x mt x mR)
+%       tH2Wn: noisy hand-world position        (3 x mt x mR)
+%       RH2Wn: noisy hand-world orientation     (3 x 3 x mR)
+%       pcOe: fitted sphere center in OCT frame (3 x mt x mR)
 
 % Cholesky decomposition for generating Gaussian noise
 % % position

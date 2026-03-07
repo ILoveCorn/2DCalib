@@ -1,14 +1,15 @@
 function [tO2He,RO2He,time] = line_RCIM2022(tH2Wn,RH2Wn,pOn)
-%LINE_RCIM2022 implementation of https://doi.org/10.1016/j.rcim.2021.102221
-%   Scheme: PCA -> two-step
-%   Parameterization: <SO(3),R(3)>
-%   Solver: linear least square
-%   v1.0 2025-02-10
+%LINE_RCIM2022
+%   Implementation of https://doi.org/10.1016/j.rcim.2021.102221
 %
-%   mt    - number of measurements per orientation
-%   tH2Wn - hand position in world frame with noise     (3xmtxm)
-%   RH2Wn - hand orientation in world frame with noise  (3x3xm)
-%   pOn   - intersection in OCT frame with noise        (3xmtxm)
+%   Input:
+%       tH2Wn: hand-world position with noise       (3 x mt x m)
+%       RH2Wn: hand-world orientation with noise    (3 x 3 x m)
+%       pOn: intersection in OCT frame with noise   (3 x mt x m)
+%   Output:
+%       tO2He: estimated hand-eye position          (3 x 1)
+%       RO2He: estimated hand-eye orientation       (3 x 3)
+%       time: computation time
 
 % number of measurements
 mt = size(pOn,2);

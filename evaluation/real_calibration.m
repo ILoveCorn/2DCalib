@@ -1,5 +1,5 @@
 % real_calibration.m
-%   hand-eye calibration using real data
+%   perform hand-eye calibration using real data
 
 clearvars
 close all
@@ -19,15 +19,15 @@ nMethod = length(testedMethods);
 %% Method settings
 % 1. Proposed
 % initial hand-eye transformation
-load('data\measure_250723_1647.mat','tO2H','RO2H')
-tO2H0 = tO2H;
-RO2H0 = RO2H;
+load('result\measure_260219_1144.mat','tO2H','RO2H')
+tO2H0 = tO2H(:, :, 1);
+RO2H0 = RO2H(:, :, 1);
 % variance factor
 sigma0 = [0.1 0.01];
 
-% max iterations of inner & outer loop
-iImax = 100;
-iOmax = 20;
+% max iterations
+iImax = 30;
+iOmax = 50;
 
 % convergence tolerance
 tol = 1e-5;
@@ -41,12 +41,12 @@ D = 14.9981;
 
 %% Get calibration data
 % plane
-planeFiles = dir('data/oct/plane/oct_plane*.yaml');
+planeFiles = dir('data/oct/plane/calibration/oct_checkerboard*.yaml');
 planeFiles = {planeFiles.name};
 nCalibFile = length(planeFiles);
 
 % sphere
-sphereFiles = dir('data/oct/sphere/oct_sphere*.yaml');
+sphereFiles = dir('data/oct/sphere/calibration/oct_sphere*.yaml');
 sphereFiles = {sphereFiles.name};
 
 %% Calibration
@@ -84,24 +84,32 @@ for iCalibFile = 1:nCalibFile
     % 4: sphere-based method
     iMethod = 4;
     fprintf('\tUsing method-%d\n',iMethod)
-    
-    [tH2Wn,RH2Wn,pcOe,~] = loadMEAS2023YAML(sphereFiles{iCalibFile},mt,D);
-    [tO2He,RO2He,time] = sphere_MEAS2023(tH2Wn,RH2Wn,pcOe);
+    if iCalibFile <= length(sphereFiles)
+        [tH2Wn,RH2Wn,pcOe,~] = loadMEAS2023YAML(sphereFiles{iCalibFile},mt,D);
+        [tO2He,RO2He,time] = sphere_MEAS2023(tH2Wn,RH2Wn,pcOe);
 
-    alltO2He(:, iCalibFile, iMethod) = tO2He;
-    allRO2He(:, :, iCalibFile, iMethod) = RO2He;
-    Time(iCalibFile, iMethod) = time;
+        alltO2He(:, iCalibFile, iMethod) = tO2He;
+        allRO2He(:, :, iCalibFile, iMethod) = RO2He;
+        Time(iCalibFile, iMethod) = time;
+    else
+        alltO2He(:, iCalibFile, iMethod) = alltO2He(:, 1, iMethod);
+        allRO2He(:, :, iCalibFile, iMethod) = allRO2He(:, :, 1, iMethod);
+        Time(iCalibFile, iMethod) = Time(1, iMethod);
+    end
 
 
-    % 5: measured
+    % 5: reference
     iMethod = 5;
-    alltO2He(:, iCalibFile, iMethod) = tO2H0;
-    allRO2He(:, :, iCalibFile, iMethod) = RO2H0;
+    alltO2He(:, iCalibFile, iMethod) = tO2H(:, :, iCalibFile);
+    allRO2He(:, :, iCalibFile, iMethod) = RO2H(:, :, iCalibFile);
 end
 
 %% Save result
+comments = {};
+
 dateTimeSuffix = string(datetime('now'), 'yyMMdd_HHmm');
 resultFilename = 'result/real_calibration_' + dateTimeSuffix + '.mat';
 save(resultFilename, 'testedMethods', 'planeFiles', 'sphereFiles', 'D', ...
     'alltO2He', 'allRO2He', 'Time', ...
-    'sigma0', 'iImax', 'iOmax', 'tol')
+    'sigma0', 'iImax', 'iOmax', 'tol', ...
+    'comments')

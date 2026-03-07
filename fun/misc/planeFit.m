@@ -1,12 +1,17 @@
 function [nP,dP,res] = planeFit(tO2H,RO2H,tH2W,RH2W,scanO)
-%PLANEFIT Estimate plane parameters (nP,dP) from hand-eye
-%transformation and plane calibration data
-%   tO2H, RO2H - hand-eye transformation
-%   tH2W, RH2W, scanO - plane calibration data
+%PLANEFIT
+%   Estimate plane parameters from hand-eye transformation and calibration data
 %
-%   nP - plane normal
-%   dP - plane distance
-%   res - averaged plane residue
+%   Input:
+%       tO2H: hand-eye position         (3 x 1)
+%       RO2H: hand-eye orientation      (3 x 3)
+%       tH2W: hand-world position       (3 x 1 x m)
+%       RH2W: hand-world orientation    (3 x 3 x m)
+%       scanO: target profile points    (3 x np x m)
+%   Output:
+%       nP: plane normal                (3 x 1)
+%       dP: plane distance
+%       res: averaged plane residue
 
 % transform to world frame
 scanW = pagemtimes(RH2W, pagemtimes(RO2H, scanO) + tO2H) + tH2W; % 3 x np x m

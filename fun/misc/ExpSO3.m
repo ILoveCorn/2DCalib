@@ -1,6 +1,11 @@
 function SO3 = ExpSO3(so3)
-%ExpSO3 exponential map of SO(3)
-%   so(3): [rx, ry, rz]
+%EXPSO3
+%   Exponential map of SO(3)
+%
+%   Input:
+%       so3: rotation vector    (3 x 1)
+%   Output:
+%       SO3: rotation matrix    (3 x 3)
 so3 = so3(:);
 
 % axis-angle

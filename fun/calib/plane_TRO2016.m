@@ -1,14 +1,19 @@
 function [tO2He,RO2He,ne,time] = plane_TRO2016(tO2He,RO2He,tH2Wn,RH2Wn,vOn,scanO)
-%PLANE_TRO2016 implementation of https://doi.org/10.1109/TRO.2016.2596769
-%   Scheme: decoupled rotation & translation, PCA
-%   Parameterization: <RPY,R(3)>
-%   Solver: nonlinear least square
-%   v1.0 2025-06-08
+%PLANE_TRO2016
+%   Implementation of https://doi.org/10.1109/TRO.2016.2596769
 %
-%   tH2Wn - hand position in world frame with noise     (3 x 1 x m)
-%   RH2Wn - hand orientation in world frame with noise  (3 x 3 x m)
-%   vOn   - fitted line direction in OCT frame          (3 x 1 x m)
-%   scanO - original line points                        (3 x np x m)
+%   Input:
+%       tO2He: initial hand-eye position            (3 x 1)
+%       RO2He: initial hand-eye orientation         (3 x 3)
+%       tH2Wn: hand-world position with noise       (3 x 1 x m)
+%       RH2Wn: hand-world orientation with noise    (3 x 3 x m)
+%       vOn: fitted line direction in OCT frame     (3 x 1 x m)
+%       scanO: original line points                 (3 x np x m)
+%   Output:
+%       tO2He: estimated hand-eye position          (3 x 1)
+%       RO2He: estimated hand-eye orientation       (3 x 3)
+%       ne: estimated plane normal                  (3 x 1)
+%       time: computation time
 
 % start clock
 tic

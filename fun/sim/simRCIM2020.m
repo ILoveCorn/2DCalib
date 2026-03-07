@@ -1,14 +1,17 @@
 function [tH2Wn,RH2Wn,lOn] = simRCIM2020(pP,nP,lP,xmax,zmax,tO2H,RO2H,et,eR,eO,m)
-%SIMRCIM2020 plane calibration simulation of https://doi.org/10.1016/j.rcim.2019.101823
-%   v1.0 2025-03-26
+%SIMRCIM2020
+%   Plane calibration simulation of https://doi.org/10.1016/j.rcim.2019.101823
 %
-%   tH2Wn - hand position in world frame with noise     (3x1xm)
-%   RH2Wn - hand orientation in world frame with noise  (3x3xm)
-%   lOn   - fitted intersection line in OCT frame       (6x1xm, [position direction])
-%
-%   pP - plane ceter position
-%   nP - plane normal
-%   lP - plane side length
+%   Input:
+%       pP, nP, lP: plane center position, normal, side length
+%       xmax, zmax: lateral and axial FOV
+%       tO2H, RO2H: hand-eye transformation
+%       et, eR, eO: std of position, orientation, image noise
+%       m: number of measurements
+%   Output:
+%       tH2Wn: hand-world position with noise       (3 x 1 x m)
+%       RH2Wn: hand-world orientation with noise    (3 x 3 x m)
+%       lOn: fitted intersection line in OCT frame  (6 x 1 x m)
 
 % number of image points for each measurement
 npO = 20;
@@ -62,7 +65,7 @@ eulO2W = [linspace(zRng(1),zRng(2),m);
 
 % orientation noise
 wn = LR*randn(3,m);
-parfor i = 1:m
+for i = 1:m
     Rn(:,:,i) = ExpSO3(wn(:,i));
 end
 

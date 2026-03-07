@@ -1,15 +1,15 @@
 function [tO2He,RO2He,time] = sphere_MEAS2023(tH2Wn,RH2Wn,pcOe)
-%SPHERE_MEAS2023 implementation of https://doi.org/10.1016/j.measurement.2023.112936
-%   Scheme: two-step
-%   Parameterization: <SO(3),R(3)>
-%   Solver: linear least square
-%   v1.0 2025-03-19
+%SPHERE_MEAS2023
+%   Implementation of https://doi.org/10.1016/j.measurement.2023.112936
 %
-%   mt    - number of measurements per orientation
-%   tH2Wn - hand position in world frame with noise     (3xmtxm)
-%   RH2Wn - hand orientation in world frame with noise  (3x3xm)
-%   pOn   - sphere contours in OCT frame                (3xmOxmtxm)
-%   pcOe  - fitted sphere center in OCT frame           (3xmtxm)
+%   Input:
+%       tH2Wn: hand-world position with noise       (3 x mt x m)
+%       RH2Wn: hand-world orientation with noise    (3 x 3 x m)
+%       pcOe: fitted sphere center in OCT frame     (3 x mt x m)
+%   Output:
+%       tO2He: estimated hand-eye position          (3 x 1)
+%       RO2He: estimated hand-eye orientation       (3 x 3)
+%       time: computation time
 
 % number of measurements
 mt = size(tH2Wn,2);

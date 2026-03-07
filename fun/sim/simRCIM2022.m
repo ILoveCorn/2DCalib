@@ -1,20 +1,20 @@
 function [tH2Wn,RH2Wn,pOn] = simRCIM2022(pL,vL,lL,xMax,zMax,tO2H,RO2H,Sigmat,SigmaR,sigmaO,alphaMax,betaMax,mAlpha,mBeta,mt)
-%SIMRCIM2022 simulation for https://doi.org/10.1016/j.rcim.2021.102221
+%SIMRCIM2022
+%   Simulation for https://doi.org/10.1016/j.rcim.2021.102221
 %
 %   Input:
 %       pL, vL, lL: line starting point, direction, length
-%       xMax, zMax: lateral, axial FOV
+%       xMax, zMax: lateral and axial FOV
 %       tO2H, RO2H: hand-eye transformation
-%       sigmat, sigmaR, sigmaO: std of position, orientation, image noise
-%       Sigmat, SigmaR: covariance of position, orientation noise
+%       Sigmat, SigmaR: covariance of position and orientation noise
 %       sigmaO: std of image noise
 %       alphaMax, betaMax: max Euler angle
-%       mAlpha, mBeta: number of alpha, beta angles
+%       mAlpha, mBeta: number of alpha and beta angles
 %       mt: number of measurements per orientation
 %   Output:
-%       tH2Wn - noisy hand-world position           (3 x mt x mR)
-%       RH2Wn - noisy hand-world orientation        (3 x 3 x mR)
-%       pOn   - intersection position in OCT frame  (3 x mt x mR)
+%       tH2Wn: noisy hand-world position        (3 x mt x mR)
+%       RH2Wn: noisy hand-world orientation     (3 x 3 x mR)
+%       pOn: intersection position in OCT frame (3 x mt x mR)
 
 % Cholesky decomposition for generating Gaussian noise
 % % position
@@ -74,7 +74,7 @@ end
 
 % % OCT orientation
 % RO2W = zeros(3,3,mR);
-% parfor iR = 1:mR
+% for iR = 1:mR
 %     RO2Wi = eye(3);
 %     Ry = zeros(3,1);
 %     % check if line target is parallel to image plane

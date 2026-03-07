@@ -1,6 +1,9 @@
 function w = randSO3()
-%randSO3 uniformly sampling from SO(3)
-%   w: returned rotation vector
+%RANDSO3
+%   Uniform sampling from SO(3)
+%
+%   Output:
+%       w: rotation vector  (3 x 1)
 
 % uniformly sample w from open sphere with radius of pi
 theta = 2*pi*rand;

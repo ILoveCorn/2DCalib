@@ -1,6 +1,11 @@
 function Jr = JrSO3(so3)
-%JrSO3 right Jacobian of SO(3)
-%   so(3): [rx, ry, rz]
+%JRSO3
+%   Right Jacobian of SO(3)
+%
+%   Input:
+%       so3: rotation vector        (3 x 1)
+%   Output:
+%       Jr: right Jacobian matrix   (3 x 3)
 so3 = so3(:);
 
 % axis-angle

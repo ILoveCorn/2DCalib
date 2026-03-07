@@ -1,6 +1,11 @@
 function iJr = invJrSO3(so3)
-%invJrSO3 inverse of the right Jacobian of SO(3)
-%   so(3): [rx, ry, rz]
+%INVJRSO3
+%   Inverse of the right Jacobian of SO(3)
+%
+%   Input:
+%       so3: rotation vector            (3 x 1)
+%   Output:
+%       iJr: inverse right Jacobian matrix  (3 x 3)
 so3 = so3(:);
 
 % axis-angle

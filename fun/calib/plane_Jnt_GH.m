@@ -30,10 +30,6 @@ iO = 1; % outer loop
 time = 0;
 converged = false;  % is converged (for calculate residue & Jacobians of the final estimation)
 
-% max iterations
-% iImax = 100;
-% iOmax = 20;
-
 % problem dimension
 m = size(tH2Wn,3);
 nx = 9; % [O2He(6) ne(2) de(1)]
@@ -41,12 +37,8 @@ nl = 6; % [tH2Wi(3) wH2Wi(3)]
 ng = 2; % [g(2)]
 
 % recover hand pose & vectorize
-pOnH = zeros(3,3,m);
-vOnH = zeros(3,3,m);
-parfor i = 1:m
-    pOnH(:,:,i) = hat(pOn(:,i));
-    vOnH(:,:,i) = hat(vOn(:,i));
-end
+pOnH = pagehat(pOn);  % 3x3xm
+vOnH = pagehat(vOn);  % 3x3xm
 
 % initial hand-world transformation
 tH2We = tH2Wn;
@@ -59,8 +51,8 @@ vR = repmat(eye(3),[1 1 m]);   % RH2W
 % Jacobians
 A = zeros(ng,nx,m);     % dg / dx
 B = zeros(ng,nl,m);     % dg / dl
-pHeH = zeros(3,3,m);    % hat(pHe)
-vHeH = zeros(3,3,m);    % hat(vHe)
+% pHeH = zeros(3,3,m);    % hat(pHe)
+% vHeH = zeros(3,3,m);    % hat(vHe)
 
 % covariance
 vare = repelem(sigmae,3).^2;
@@ -72,8 +64,8 @@ dx = zeros(nx,1);
 dvar = ones(size(vare));
 
 % redundancy number
-rti = zeros(1,m);
-rwi = zeros(1,m);
+% rti = zeros(1,m);
+% rwi = zeros(1,m);
 
 while iO <= iOmax
     %%% estimate unknowns %%%
@@ -102,10 +94,8 @@ while iO <= iOmax
         % constraints
         G = [pagemtimes(neT,pWe)-de; pagemtimes(neT,vWe)];  % 2 x 1 x m
 
-        % measurement residue
-        axangvw = rotm2axang(vR)';
-        % TODO: check rotation axis norm
-        vw = reshape(axangvw(1:3,:).*axangvw(4,:),3,1,m);
+        % measurement residue - vectorized LogSO3
+        vw = pageLogSO3(vR);  % 3 x 1 x m
         V = [vt; vw];   % 6 x 1 x m
 
         % Jacobians
@@ -121,15 +111,14 @@ while iO <= iOmax
         A(2,7,:) = pagemtimes(Jne(:,1)',vWe);
         A(2,8,:) = pagemtimes(Jne(:,2)',vWe);   % 2 x nx x m
 
-        % dg1 / dl
-        B(1,1:3,:) = neT(:,:,ones(1,m));
-        parfor i = 1:m
-            pHeH(:,:,i) = hat(pHe(:,:,i));
-            vHeH(:,:,i) = hat(vHe(:,:,i));
+        % dg1 / dl - vectorized hat computation
+        pHeH = pagehat(pHe);  % 3x3xm
+        vHeH = pagehat(vHe);  % 3x3xm
 
-            % right Jacobian of dR
-            JrvR(:,:,i) = JrSO3(vw(:,:,i));
-        end
+        % right Jacobian of dR - vectorized
+        JrvR = pageJrSO3(vw);  % 3x3xm
+
+        B(1,1:3,:) = neT(:,:,ones(1,m));
         B(1,4:6,:) = -pagemtimes(neT,pagemtimes(RH2We,pHeH));
         % dg2 / dl
         B(2,4:6,:) = -pagemtimes(neT,pagemtimes(RH2We,vHeH));   % 2 x nl x m
@@ -139,7 +128,7 @@ while iO <= iOmax
 
         % Hessian & gradient
         % (43b)
-        E = pagemtimes(B,pagemtimes(Cl,'none',B,'transpose')); % 2 x 2 x m
+        E = pagemtimes(B,pagemtimes(Cl,'none',B,'transpose'));  % 2 x 2 x m
         % (43c)
         cg = pagemtimes(B,V) - G;   % 2 x 1 x m
         % (43d)
@@ -172,9 +161,9 @@ while iO <= iOmax
         % measurements
         vt = vt + dl(1:3,:,:);
         tH2We = tH2Wn + vt;
-        parfor i = 1:m
-            vR(:,:,i) = vR(:,:,i)*ExpSO3(dl(4:6,:,i));
-        end
+        % vectorized ExpSO3 for all measurements
+        ExpR = pageExpSO3(dl(4:6,:,:));  % 3x3xm
+        vR = pagemtimes(vR, ExpR);
         RH2We = pagemtimes(RH2Wn,vR);
 
         % add time
@@ -193,11 +182,9 @@ while iO <= iOmax
     Rdiag = pagemtimes(Cl,DtE_D-pagemtimes(pagemrdivide(DtE_A,H),'none',DtE_A,'transpose'));
     Rt = Rdiag(1:3,1:3,:);
     Rw = Rdiag(4:6,4:6,:);
-    % redundancy number
-    parfor i = 1:m
-        rti(i) = trace(Rt(:,:,i));
-        rwi(i) = trace(Rw(:,:,i));
-    end
+    % redundancy number - vectorized trace computation
+    rti = Rt(1,1,:) + Rt(2,2,:) + Rt(3,3,:);
+    rwi = Rw(1,1,:) + Rw(2,2,:) + Rw(3,3,:);
     rt = sum(rti);
     rw = sum(rwi);
 

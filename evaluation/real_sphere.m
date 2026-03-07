@@ -5,8 +5,10 @@ clearvars
 close all
 clc
 
+rng('default')
+
 %% Load calibration result
-load('result/real_calibration_251008_1022.mat', 'testedMethods', 'sphereFiles', 'D', 'alltO2He', 'allRO2He', 'Time')
+load('result/real_calibration_260219_1146.mat', 'testedMethods', 'sphereFiles', 'D', 'alltO2He', 'allRO2He', 'Time')
 nMethod = length(testedMethods);
 nCalibFile = size(alltO2He, 2);
 

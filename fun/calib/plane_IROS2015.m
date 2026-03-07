@@ -1,13 +1,19 @@
 function [tO2He,RO2He,ne,time] = plane_IROS2015(tO2He,RO2He,tH2Wn,RH2Wn,pOn,tol)
-%PLANE_IROS2015 implementation of https://doi.org/10.1109/IROS.2015.7353884
-%   Scheme: PCA -> two-step
-%   Parameterization: <SO(3),R(3)>
-%   Solver: linear least square
-%   v1.0 2025-03-14
+%PLANE_IROS2015
+%   Implementation of https://doi.org/10.1109/IROS.2015.7353884
 %
-%   tH2Wn - hand position in world frame with noise     (3x1xmxmP)
-%   RH2Wn - hand orientation in world frame with noise  (3x3xmxmP)
-%   pOn   - a point on intersection line in OCT frame   (3x1xmxmP)
+%   Input:
+%       tO2He: initial hand-eye position                    (3 x 1)
+%       RO2He: initial hand-eye orientation                 (3 x 3)
+%       tH2Wn: hand-world position with noise               (3 x 1 x m x mP)
+%       RH2Wn: hand-world orientation with noise            (3 x 3 x m x mP)
+%       pOn: a point on intersection line in OCT frame      (3 x 1 x m x mP)
+%       tol: convergence tolerance
+%   Output:
+%       tO2He: estimated hand-eye position                  (3 x 1)
+%       RO2He: estimated hand-eye orientation               (3 x 3)
+%       ne: estimated plane normal                          (3 x 1)
+%       time: computation time
 
 % control variables
 i = 1;
@@ -24,9 +30,9 @@ while true
     pWe = pagemtimes(RH2Wn,pagemtimes(RO2He,pOn) + tO2He) + tH2Wn;  % 3*1*m*mP
 
     %%% plane normal %%%
-    pWavg = reshape(mean(pWe,3),3,mP);
-    neT = zeros(1,3,m,mP);
-    de = zeros(1,mP);
+    pWavg = reshape(mean(pWe,3),3,mP);  % 3*mP
+    neT = zeros(1,3,m,mP);              % 1*3*m*mP
+    de = zeros(1,mP);                   % 1*mP
     for iP = 1:mP
         pWei = reshape(pWe(:,:,:,iP),3,m);
         [~,~,V] = svd((pWei-pWavg(:,iP))',0);

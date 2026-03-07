@@ -1,15 +1,16 @@
 function [tH2Wn,RH2Wn,pcOe,scanO] = loadMEAS2023YAML(filename,mt,D)
-%loadMEAS2023YAML load calibration data of MEAS2023
+%LOADMEAS2023YAML
+%   Load calibration data of MEAS2023
 %
-%   mR - number of orientations
-%   mt - number of samples per orientation
-%
-%   tH2Wn - hand position in world frame with noise     (3 x mt x mR)
-%   RH2Wn - hand orientation in world frame with noise  (3 x 3 x mR)
-%   pcOe - estimated sphere center in OCT frame (3 x mt x m)
-%   scanO - raw scan points ({3 x npi} x mt x m)
-%
-%   D - diameter of calibration sphere
+%   Input:
+%       filename: path to yaml file
+%       mt: number of samples per orientation
+%       D: diameter of calibration sphere
+%   Output:
+%       tH2Wn: hand-world position with noise   (3 x mt x mR)
+%       RH2Wn: hand-world orientation           (3 x 3 x mR)
+%       pcOe: estimated sphere center           (3 x mt x mR)
+%       scanO: raw scan points                  ({3 x npi} x mt x mR)
 
 [tH2Wn,RH2Wn,scanO,centerSignY] = loadTestYAML(filename);
 
