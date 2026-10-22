@@ -19,7 +19,7 @@ nMethod = length(testedMethods);
 %% Method settings
 % 1. Proposed
 % initial hand-eye transformation
-load('result\measure_260219_1144.mat','tO2H','RO2H')
+load('data/measure_260219_1144.mat','tO2H','RO2H')
 tO2H0 = tO2H(:, :, 1);
 RO2H0 = RO2H(:, :, 1);
 % variance factor
@@ -41,12 +41,12 @@ D = 14.9981;
 
 %% Get calibration data
 % plane
-planeFiles = dir('data/oct/plane/calibration/oct_checkerboard*.yaml');
+planeFiles = dir('data/oct/plane/oct_plane*.yaml');
 planeFiles = {planeFiles.name};
 nCalibFile = length(planeFiles);
 
 % sphere
-sphereFiles = dir('data/oct/sphere/calibration/oct_sphere*.yaml');
+sphereFiles = dir('data/oct/sphere/oct_sphere*.yaml');
 sphereFiles = {sphereFiles.name};
 
 %% Calibration

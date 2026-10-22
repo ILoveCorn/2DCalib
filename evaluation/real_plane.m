@@ -9,7 +9,8 @@ clc
 load('result/real_calibration_260219_1146.mat', 'testedMethods', 'planeFiles', 'alltO2He', 'allRO2He', 'Time')
 
 % get test files
-testFiles = planeFiles;
+% (results saved before the dataset rename store legacy oct_checkerboard_* names)
+testFiles = strrep(planeFiles, 'oct_checkerboard', 'oct_plane');
 
 nMethod = length(testedMethods);
 nCalibFile = length(testFiles);
