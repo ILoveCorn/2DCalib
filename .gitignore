@@ -1,0 +1,13 @@
+# MATLAB autosave and editor backups
+*.asv
+*.autosave
+*.m~
+
+# MATLAB build artifacts
+*.mex*
+slprj/
+codegen/
+
+# OS files
+.DS_Store
+Thumbs.db
