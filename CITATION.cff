@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite the article below."
+title: "2DCalib: Uncertainty-aware cross-scale hand-eye calibration of 2-D OCT using a plane target"
+type: software
+authors:
+  - given-names: Yan
+    family-names: Ma
+  - given-names: Haitian
+    family-names: Lyu
+  - given-names: Jiewen
+    family-names: Lai
+  - given-names: Ruiyang
+    family-names: Zhang
+  - given-names: Wu
+    family-names: Yuan
+  - given-names: Hongliang
+    family-names: Ren
+repository-code: "https://github.com/ILoveCorn/2DCalib"
+license: MIT
+keywords:
+  - hand-eye calibration
+  - optical coherence tomography
+  - Gauss-Helmert model
+  - uncertainty-aware estimation
+  - MATLAB
+preferred-citation:
+  type: article
+  title: "Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2-D Optical Coherence Tomography Using a Plane Target"
+  authors:
+    - given-names: Yan
+      family-names: Ma
+    - given-names: Haitian
+      family-names: Lyu
+    - given-names: Jiewen
+      family-names: Lai
+    - given-names: Ruiyang
+      family-names: Zhang
+    - given-names: Wu
+      family-names: Yuan
+    - given-names: Hongliang
+      family-names: Ren
+  journal: "IEEE Transactions on Robotics"
+  year: 2026
+  doi: "10.1109/TRO.2026.3710397"
+  url: "https://doi.org/10.1109/TRO.2026.3710397"
