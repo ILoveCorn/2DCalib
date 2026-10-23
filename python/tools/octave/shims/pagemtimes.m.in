@@ -1,0 +1,144 @@
+function C = pagemtimes(A, varargin)
+% Octave stand-in for MATLAB pagemtimes.
+% Stored as .m.in so addpath(genpath(pwd)) cannot see it.
+% pagemtimes(A,B) or pagemtimes(A,opA,B,opB)
+% op is 'none', 'transpose', or 'ctranspose'.
+% A 1-by-1 page multiplies as a scalar, matching MATLAB.
+
+  if nargin == 2
+    B = varargin{1};
+    opA = 'none';
+    opB = 'none';
+  elseif nargin == 4
+    opA = varargin{1};
+    B = varargin{2};
+    opB = varargin{3};
+  else
+    error('pagemtimes: expected pagemtimes(A,B) or pagemtimes(A,opA,B,opB)');
+  end
+  C = page_map(apply_op(A, opA), apply_op(B, opB), @mul_page);
+end
+
+function B = apply_op(A, op)
+  if strcmp(op, 'none')
+    B = A;
+    return
+  end
+  if ~(strcmp(op, 'transpose') || strcmp(op, 'ctranspose'))
+    error('pagemtimes: unsupported flag "%s"', op);
+  end
+  nd = max(ndims(A), 2);
+  order = 1:nd;
+  order(1) = 2;
+  order(2) = 1;
+  B = permute(A, order);
+  if strcmp(op, 'ctranspose')
+    B = conj(B);
+  end
+end
+
+function P = mul_page(A, B)
+  if size(A, 1) == 1 && size(A, 2) == 1
+    P = A(1, 1) * B;
+  elseif size(B, 1) == 1 && size(B, 2) == 1
+    P = B(1, 1) * A;
+  else
+    P = A * B;
+  end
+end
+
+function C = page_map(A, B, fn)
+  nd = max([ndims(A), ndims(B), 2]);
+  if nd > 4
+    error('pagemtimes: more than two page dimensions is not supported');
+  end
+  sa = pad_size(A, nd);
+  sb = pad_size(B, nd);
+  for k = 3:nd
+    if sa(k) ~= sb(k) && sa(k) ~= 1 && sb(k) ~= 1
+      error('pagemtimes: incompatible page sizes');
+    end
+  end
+  if nd == 2
+    sp = zeros(1, 0);
+  else
+    sp = max(sa(3:end), sb(3:end));
+  end
+  P1 = fn(fetch_page(A, sa, ones(1, numel(sp))), fetch_page(B, sb, ones(1, numel(sp))));
+  if isempty(sp)
+    out_sz = [size(P1, 1), size(P1, 2)];
+  else
+    out_sz = [size(P1, 1), size(P1, 2), sp];
+  end
+  C = zeros(out_sz);
+  nout = max(prod(sp), 1);
+  for lin = 1:nout
+    coord = lin_to_coord(lin, sp);
+    P = fn(fetch_page(A, sa, coord), fetch_page(B, sb, coord));
+    C = store_page(C, out_sz, coord, P);
+  end
+end
+
+function sz = pad_size(A, nd)
+  sz = ones(1, nd);
+  sa = size(A);
+  sz(1:numel(sa)) = sa;
+end
+
+function coord = lin_to_coord(lin, sp)
+  if isempty(sp)
+    coord = zeros(1, 0);
+    return
+  end
+  coord = ones(1, numel(sp));
+  x = lin - 1;
+  for i = 1:numel(sp)
+    coord(i) = mod(x, sp(i)) + 1;
+    x = floor(x / sp(i));
+  end
+end
+
+function M = fetch_page(A, sz, coord)
+  if isempty(coord)
+    M = reshape(A, sz(1), sz(2));
+    return
+  end
+  ca = coord;
+  for i = 1:numel(coord)
+    ca(i) = min(coord(i), sz(i + 2));
+  end
+  page = sz(1) * sz(2);
+  flat = reshape(A, page, []);
+  lin = 1;
+  stride = 1;
+  for i = 1:numel(ca)
+    lin = lin + (ca(i) - 1) * stride;
+    stride = stride * sz(i + 2);
+  end
+  M = reshape(flat(:, lin), sz(1), sz(2));
+end
+
+function C = store_page(C, out_sz, coord, P)
+  page = out_sz(1) * out_sz(2);
+  flat = reshape(C, page, []);
+  if isempty(coord)
+    lin = 1;
+  else
+    lin = 1;
+    stride = 1;
+    for i = 1:numel(coord)
+      lin = lin + (coord(i) - 1) * stride;
+      stride = stride * out_sz(i + 2);
+    end
+  end
+  flat(:, lin) = P(:);
+  if numel(out_sz) == 2
+    C = reshape(flat, out_sz(1), out_sz(2));
+  elseif numel(out_sz) == 3
+    C = reshape(flat, out_sz(1), out_sz(2), out_sz(3));
+  elseif numel(out_sz) == 4
+    C = reshape(flat, out_sz(1), out_sz(2), out_sz(3), out_sz(4));
+  else
+    error('pagemtimes: unsupported output rank');
+  end
+end

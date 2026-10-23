@@ -1,0 +1,63 @@
+function eul = rotm2eul(R, seq)
+% Octave stand-in for Robotics System Toolbox rotm2eul.
+% Stored as .m.in so addpath(genpath(pwd)) cannot see it.
+% Sequences ZYX (default) and ZXY. One matrix returns 1-by-3 [e1 e2 e3];
+% a stack 3-by-3-by-n returns n-by-3. Angles are radians.
+
+  if nargin < 2 || isempty(seq)
+    seq = 'ZYX';
+  end
+  seq = upper(seq);
+  if ~(strcmp(seq, 'ZYX') || strcmp(seq, 'ZXY'))
+    error('rotm2eul: only ZYX and ZXY are implemented');
+  end
+  R = double(R);
+  if ndims(R) == 2
+    eul = one_eul(R, seq);
+    return
+  end
+  n = size(R, 3);
+  eul = zeros(n, 3);
+  for i = 1:n
+    eul(i, :) = one_eul(R(:, :, i), seq);
+  end
+end
+
+function eul = one_eul(R, seq)
+  if strcmp(seq, 'ZYX')
+    eul = eul_zyx(R);
+  else
+    eul = eul_zxy(R);
+  end
+end
+
+function eul = eul_zyx(R)
+  % R = Rz(z) * Ry(y) * Rx(x), eul = [z y x]
+  sy = -R(3, 1);
+  cy = hypot(R(1, 1), R(2, 1));
+  if cy > 1e-8
+    z = atan2(R(2, 1), R(1, 1));
+    y = atan2(sy, cy);
+    x = atan2(R(3, 2), R(3, 3));
+  else
+    z = atan2(-R(1, 2), R(2, 2));
+    y = atan2(sy, cy);
+    x = 0;
+  end
+  eul = [z y x];
+end
+
+function eul = eul_zxy(R)
+  % R = Rz(z) * Rx(x) * Ry(y), eul = [z x y]
+  cx = hypot(R(1, 2), R(2, 2));
+  if cx > 1e-8
+    x = atan2(R(3, 2), cx);
+    z = atan2(-R(1, 2), R(2, 2));
+    y = atan2(-R(3, 1), R(3, 3));
+  else
+    x = atan2(R(3, 2), 0);
+    y = 0;
+    z = atan2(R(2, 1), R(1, 1));
+  end
+  eul = [z x y];
+end

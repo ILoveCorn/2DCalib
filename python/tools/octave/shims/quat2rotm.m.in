@@ -1,0 +1,36 @@
+function R = quat2rotm(q)
+% Octave stand-in for Robotics System Toolbox quat2rotm.
+% Stored as .m.in so addpath(genpath(pwd)) cannot see it.
+% q is n-by-4 with the scalar first: [w x y z]. Quaternions are normalized.
+% One quaternion returns 3-by-3; several return 3-by-3-by-n.
+
+  q = double(q);
+  if numel(q) == 4
+    q = reshape(q, 1, 4);
+  end
+  if size(q, 2) ~= 4
+    error('quat2rotm: expected n-by-4 quaternions [w x y z]');
+  end
+  n = size(q, 1);
+  R = zeros(3, 3, n);
+  for i = 1:n
+    qi = q(i, :);
+    nrm = norm(qi);
+    if nrm < eps
+      R(:, :, i) = eye(3);
+      continue
+    end
+    qi = qi / nrm;
+    w = qi(1);
+    x = qi(2);
+    y = qi(3);
+    z = qi(4);
+    R(:, :, i) = [ ...
+      1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w); ...
+      2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w); ...
+      2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)];
+  end
+  if n == 1
+    R = R(:, :, 1);
+  end
+end

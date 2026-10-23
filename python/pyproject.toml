@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "handeye2d"
+version = "0.0.0"
+description = "Uncertainty-aware hand-eye calibration for 2-D profile sensors (2DCalib)."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [
+  {name = "Yan Ma"},
+  {name = "Haitian Lyu"},
+  {name = "Jiewen Lai"},
+  {name = "Ruiyang Zhang"},
+  {name = "Wu Yuan"},
+  {name = "Hongliang Ren"},
+]
+keywords = ["hand-eye", "calibration", "OCT", "Gauss-Helmert", "2DCalib"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "numpy>=1.26",
+  "pyyaml>=6",
+  "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+experiments = ["matplotlib>=3.8", "tqdm>=4.66"]
+dev = ["pytest>=7.4", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/ILoveCorn/2DCalib"
+Repository = "https://github.com/ILoveCorn/2DCalib"
+Paper = "https://doi.org/10.1109/TRO.2026.3710397"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src/handeye2d"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "tools"]
+extend-exclude = ["tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["fixture_io", "handeye2d", "oracles"]

@@ -4,6 +4,7 @@
 [![Code license: MIT](https://img.shields.io/badge/code-MIT-green)](LICENSE)
 [![Data license: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-lightgrey)](data/LICENSE)
 ![MATLAB R2024b](https://img.shields.io/badge/MATLAB-R2024b-orange)
+[![Python package](https://img.shields.io/badge/python-handeye2d-3776AB)](python/README.md)
 
 Official MATLAB implementation, datasets, and evaluation scripts for the IEEE Transactions on Robotics article:
 
@@ -53,6 +54,17 @@ git clone https://github.com/ILoveCorn/2DCalib.git
    The data folders must be on the path as well, because the loaders open YAML files by file name.
 4. Run any script in `evaluation/`.
 
+Shims used to regenerate the Python fixtures are stored as
+`python/tools/octave/shims/*.m.in`, not as `.m` files, so this `addpath` does
+not shadow MATLAB built-ins.
+
+## Python implementation
+
+A Python package is in [`python/`](python/README.md). The import name is
+`handeye2d`. This repository's MATLAB code is unchanged. The Python tree
+currently contains the package skeleton, tests, and Octave reference fixtures;
+the calibration routines are not ported yet.
+
 ## Repository structure
 
 ```text
@@ -62,6 +74,7 @@ git clone https://github.com/ILoveCorn/2DCalib.git
 │  ├─ oct/sphere/      Sphere target datasets (10 sessions)
 │  └─ measure_*.mat    Reference hand-eye transformations from fiducial registration
 ├─ evaluation/         Simulation and real-world experiment scripts
+├─ python/             Python package skeleton and Octave reference fixtures
 ├─ fun/
 │  ├─ calib/           Proposed method, its variants, and baseline methods
 │  ├─ sim/             Synthetic data generators
@@ -114,6 +127,7 @@ The step 3 scripts load the precomputed `result/real_calibration_260219_1146.mat
 - `sim_accuracy_vs_initial_deviation.m` calls `plane_Jnt_GH_debug`, which reports iteration counts and is not included in this repository.
 - Method 3 in `sim_accuracy_vs_noise_level.m` calls `plane_Alt_GH_debug`, which is not included. It is disabled by default.
 - `real_filter_comparison.m` needs the unfiltered raw recording `oct_checkerboard_250714_2030_distorted.yaml`, which is not included.
+- `fun/calib/line_RCIM2022.m` (line 58) and `fun/sim/simMEAS2023.m` (line 90) each contain a known bug. They are left unchanged here. The Python fixtures measure the effect; see [`python/README.md`](python/README.md).
 
 ## Using your own data
 
