@@ -1,0 +1,11 @@
+schema: 1
+octave: 8.4.0
+generator: python/tools/octave/export_fixtures.m
+mat_format: v7
+rng: Octave rng(seed) before each simulator and each bug-impact trial
+seeds: plane 42, iros 43, rcim2020 44, rcim2022 45, meas2023 46
+excluded: plane_TRO2016 (Octave has no lsqnonlin)
+bug_line: fun/calib/line_RCIM2022.m:58
+bug_sim: fun/sim/simMEAS2023.m:90
+shims: python/tools/octave/shims/*.m.in copied to a temporary directory at runtime
+note: MAT headers contain a timestamp; MANIFEST.json hashes array bytes

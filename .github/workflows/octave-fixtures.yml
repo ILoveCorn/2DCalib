@@ -1,0 +1,26 @@
+name: octave-fixtures
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Octave
+        run: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y octave
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install numeric dependencies
+        run: python -m pip install "numpy>=1.26" "scipy>=1.11"
+      - name: Regenerate fixtures
+        run: python python/tools/octave/export_fixtures.py --out "${{ runner.temp }}/fixtures"
+      - name: Compare with committed fixtures
+        run: >
+          python python/tools/octave/compare_fixtures.py
+          --reference python/tests/fixtures
+          --candidate "${{ runner.temp }}/fixtures"

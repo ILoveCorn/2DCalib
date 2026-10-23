@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "files": {
+    "bug_impact.mat": {
+      "sha256": "b779b74354ea4f05c7b3ddabbd8212474e74921fee897b65e373a9ee191df251",
+      "bytes": 2683
+    },
+    "line_rcim2022.mat": {
+      "sha256": "d3afeb486bc7b8ad738f83feb5cfd9a6760ae307c9949f50b3cb1ec4f5209136",
+      "bytes": 2668
+    },
+    "plane_alt_gh.mat": {
+      "sha256": "73adcb543c0e657b0049f7b9bf384ef5ac472710fa23d8a4e30010c1e9dd2c40",
+      "bytes": 5629
+    },
+    "plane_iros2015.mat": {
+      "sha256": "55eb9a5f5e53671720da3babe9df41eccf1558bb381ba6b08c3eb90c894912f5",
+      "bytes": 3622
+    },
+    "plane_jnt_gh.mat": {
+      "sha256": "3317a5c5635a178d3705e85847cb0da59a64429d6b3fb806cd48562e2e955ef1",
+      "bytes": 5909
+    },
+    "plane_jnt_gh_decoupled.mat": {
+      "sha256": "4aeac3db39bb266221eaa3a0c73cbe2f4174c745d443df1a9fde32042a1fd13e",
+      "bytes": 5903
+    },
+    "plane_rcim2020.mat": {
+      "sha256": "8876254923bb9cd520023c0194d8645585cf7b5ad1506c94f3e19dda7d77eeb9",
+      "bytes": 3464
+    },
+    "shim_reference.mat": {
+      "sha256": "929d796b7c44bd168e7c01937bd0bf82dd1046020690bf74ea73857b847d2a09",
+      "bytes": 4977
+    },
+    "sim_iros2015.mat": {
+      "sha256": "d52378ab12dd895e9ae1133391353675d9b7617851df229ec65824cec6ebb201",
+      "bytes": 3639
+    },
+    "sim_meas2023.mat": {
+      "sha256": "4c7a9374e4b2dd12f029f07c2468c3477b83170dc568641e6d8bd4dd249d22e5",
+      "bytes": 2570
+    },
+    "sim_plane.mat": {
+      "sha256": "455620b7f57901c12ad6cf7862c2d82ce00ab10948c5bfabc3da8634d86928c6",
+      "bytes": 7321
+    },
+    "sim_rcim2020.mat": {
+      "sha256": "b6ce29a950c406be8f77c1e43e413b2e4fe3df9cf930391b7a0f91915729ca2d",
+      "bytes": 2018
+    },
+    "sim_rcim2022.mat": {
+      "sha256": "01335f338ef82244627b1e9e7e606e2404aa014b31cc9bd4f6bbfee9323e8def",
+      "bytes": 3059
+    },
+    "sphere_meas2023.mat": {
+      "sha256": "17d0f03ef8601423e6f436b2788dd95fa10c23c7753c1a8e2056f0dfe07da242",
+      "bytes": 2249
+    }
+  }
+}

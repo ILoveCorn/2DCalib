@@ -1,0 +1,48 @@
+function R = eul2rotm(e, seq)
+% Octave stand-in for Robotics System Toolbox eul2rotm.
+% Stored as .m.in so addpath(genpath(pwd)) cannot see it.
+% Intrinsic rotations: R = R1(e1) * R2(e2) * R3(e3). Default sequence ZYX.
+% e is n-by-3. One rotation returns 3-by-3; several return 3-by-3-by-n.
+
+  if nargin < 2 || isempty(seq)
+    seq = 'ZYX';
+  end
+  seq = upper(seq);
+  if numel(seq) ~= 3
+    error('eul2rotm: sequence must contain three axes');
+  end
+  e = double(e);
+  if isvector(e) && numel(e) == 3
+    e = reshape(e, 1, 3);
+  end
+  if size(e, 2) ~= 3
+    error('eul2rotm: expected an n-by-3 matrix of Euler angles');
+  end
+  n = size(e, 1);
+  R = zeros(3, 3, n);
+  for i = 1:n
+    Ri = eye(3);
+    for k = 1:3
+      Ri = Ri * elem_rot(seq(k), e(i, k));
+    end
+    R(:, :, i) = Ri;
+  end
+  if n == 1
+    R = R(:, :, 1);
+  end
+end
+
+function R = elem_rot(ax, a)
+  c = cos(a);
+  s = sin(a);
+  switch ax
+    case 'X'
+      R = [1 0 0; 0 c -s; 0 s c];
+    case 'Y'
+      R = [c 0 s; 0 1 0; -s 0 c];
+    case 'Z'
+      R = [c -s 0; s c 0; 0 0 1];
+    otherwise
+      error('eul2rotm: axis must be X, Y, or Z');
+  end
+end
