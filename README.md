@@ -61,9 +61,10 @@ not shadow MATLAB built-ins.
 ## Python implementation
 
 A Python package is in [`python/`](python/README.md). The import name is
-`handeye2d`. This repository's MATLAB code is unchanged. The Python tree
-currently contains the package skeleton, tests, and Octave reference fixtures;
-the calibration routines are not ported yet.
+`handeye2d`. This repository's MATLAB code is unchanged. The Python tree has
+the geometry utilities, the OCT YAML readers, the MEAS2023 closed form, tests,
+and Octave reference fixtures. The Gauss-Helmert solver and the other
+baselines are not ported yet.
 
 ## Repository structure
 
@@ -74,7 +75,7 @@ the calibration routines are not ported yet.
 │  ├─ oct/sphere/      Sphere target datasets (10 sessions)
 │  └─ measure_*.mat    Reference hand-eye transformations from fiducial registration
 ├─ evaluation/         Simulation and real-world experiment scripts
-├─ python/             Python package skeleton and Octave reference fixtures
+├─ python/             Python package (geometry, YAML readers, MEAS2023) and Octave fixtures
 ├─ fun/
 │  ├─ calib/           Proposed method, its variants, and baseline methods
 │  ├─ sim/             Synthetic data generators

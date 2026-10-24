@@ -65,4 +65,4 @@ extend-exclude = ["tests/fixtures"]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["fixture_io", "handeye2d", "oracles"]
+known-first-party = ["fixture_io", "handeye2d", "layout", "oracles"]

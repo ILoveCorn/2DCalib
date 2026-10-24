@@ -10,6 +10,10 @@ the calibration algorithms.
 - `handeye2d` package skeleton (`numpy`, `scipy`, `pyyaml`), pytest, and ruff.
 - GitHub Actions for the Python tree, plus a manual/weekly Octave fixture check.
 - Octave reference fixtures under `tests/fixtures/`, including `bug_impact.mat`.
+- `so3`, `rotations`, `fitting`, `metrics`, and the OCT YAML readers.
+- `calib.sphere_meas2023`, checked against the Octave sphere fixture and the
+  ten saved real sphere sessions. The other calibration routines are not in
+  this version.
 
 ### Noted bugs (fixed only when generating Python reference data)
 
