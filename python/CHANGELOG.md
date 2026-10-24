@@ -32,6 +32,9 @@ five simulation experiment scripts. This version is not published to PyPI.
 
 - `load_plane_yaml` fits `pOn` and `vOn` on each original profile. Resampling
   to the shortest scan applies only to `scanO`, as in `loadPlaneYAML`.
+- Pytest adds the `python/` directory to `sys.path`, so `import experiments`
+  works when the `pytest` console script is used. `python -m pytest` already
+  put that directory on the path.
 
 ### Fixed in Python only
 
