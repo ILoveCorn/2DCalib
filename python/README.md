@@ -5,10 +5,10 @@ for *Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2-D Optical
 Coherence Tomography Using a Plane Target* (IEEE T-RO, 2026,
 [10.1109/TRO.2026.3710397](https://doi.org/10.1109/TRO.2026.3710397)).
 
-**This tree is the package skeleton and the Octave reference fixtures.** The
-calibration and simulation algorithms are not ported yet, and nothing here is
-published to PyPI. The import name and the distribution name are both
-`handeye2d`.
+**This tree has the geometry utilities, the OCT YAML readers, and the MEAS2023
+closed form.** The Gauss-Helmert solver, the other baselines, and the
+simulators are not ported yet, and nothing here is published to PyPI. The
+import name and the distribution name are both `handeye2d`.
 
 The MATLAB code at the repository root is unchanged.
 
@@ -33,7 +33,13 @@ pytest
 ```text
 python/
 ├─ pyproject.toml
-├─ src/handeye2d/          import package (algorithms arrive later)
+├─ src/handeye2d/
+│  ├─ so3.py               hat, exp, log, jr, jr_inv, random_rotvec
+│  ├─ rotations.py         quaternion, Euler, axis-angle
+│  ├─ fitting.py           plane_fit, circle_fit
+│  ├─ metrics.py           calibration_error
+│  ├─ io.py                OCT YAML readers
+│  └─ calib/sphere_meas2023.py
 ├─ tests/fixtures/         committed Octave oracles (MAT v7)
 └─ tools/octave/
    ├─ export_fixtures.m    only .m file under python/
@@ -42,13 +48,13 @@ python/
    └─ shims/*.m.in         Octave stand-ins, never stored as .m
 ```
 
-Planned modules, not in this version: `so3`, `rotations`, `fitting`, `metrics`,
-`io`, `calib`, and `sim`. Names will be snake_case. Batch dimensions come
-first (`tH2W` as `(m, 3)`, `RH2W` as `(m, 3, 3)`). There is no GPU build and
-no replacement for the missing `*_debug` functions.
+Names are snake_case. Batch dimensions come first (`tH2W` as `(m, 3)`,
+`RH2W` as `(m, 3, 3)`, `scanO` as `(m, n_points, 3)`). There is no GPU build
+and no replacement for the missing `*_debug` functions. `sim` and the
+remaining `calib` solvers are later milestones.
 
-Real-data scripts that come later follow scope B: YAML loaders,
-`real_calibration`, and `real_plane`.
+Real-data scripts that come later follow scope B: the YAML loaders are in
+place; `real_calibration` and `real_plane` are not.
 
 ## Octave fixtures
 
@@ -99,7 +105,10 @@ by `tests/test_bug_impact.py`:
   trials the unpatched calibration error is several times larger.
 
 Also, relative to MATLAB: Octave's random stream is not MATLAB's; there is no
-GPU variant; `*_debug` solvers are not provided.
+GPU variant; `*_debug` solvers are not provided. `so3.exp`, `so3.log`,
+`so3.jr`, and `so3.jr_inv` share one small-angle threshold, `1e-10`, with the
+Taylor coefficients from the `page*` forms. The scalar MATLAB functions use a
+stricter cutoff and, below it, return the identity.
 
 ## Tests
 
@@ -108,6 +117,11 @@ GPU variant; `*_debug` solvers are not provided.
 | `test_fixture_integrity.py` | manifest hashes, no shim `.m` files, patch text still matches `fun/`, shapes, noiseless recovery |
 | `test_shim_scipy.py` | Euler, axis-angle, quaternion, and `rotm2eul` against SciPy; page products against NumPy / `scipy.linalg.solve` |
 | `test_bug_impact.py` | column counts, arc limits, and the error change in `bug_impact.mat` |
+| `test_so3.py`, `test_rotations.py` | Rodrigues, Jacobians, and the shim rotation cases |
+| `test_fitting.py`, `test_metrics.py` | circle and plane fits; `calibration_error` against every fixture that stored it |
+| `test_io.py` | units, MATLAB `round(linspace)`, MEAS grouping, no LiDAR branch |
+| `test_sphere_meas2023.py` | closed form against `sphere_meas2023.mat` and a known pose |
+| `test_real_data.py` | ten MEAS2023 sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat`; plane sessions load and fit |
 
 ## License
 

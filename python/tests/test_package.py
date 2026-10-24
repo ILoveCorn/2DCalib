@@ -13,6 +13,6 @@ def test_version_matches_pyproject(python_root: Path) -> None:
     assert match.group(1) == handeye2d.__version__ == "0.0.0"
 
 
-def test_package_does_not_export_algorithms() -> None:
-    exported = [name for name in vars(handeye2d) if not name.startswith("_")]
-    assert exported == []
+def test_package_exports_the_foundation_modules() -> None:
+    exported = sorted(name for name in vars(handeye2d) if not name.startswith("_"))
+    assert exported == ["calib", "fitting", "io", "metrics", "rotations", "so3"]
