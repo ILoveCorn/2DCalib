@@ -58,6 +58,6 @@ calibration much farther from the generating pose:
 | Original (`zMax`) | 8.53 (7.81, 8.92) | 151 (119, 155) |
 | Patched (`xMax`) | 0.48 (0.25, 1.16) | 1.91 (0.86, 7.08) |
 
-`sim_meas2023` samples with `xMax`. Later Monte Carlo comparisons with the
-paper should expect the Xu and Tang numbers to move because of these two
-corrections. Those experiment scripts are not in this tree.
+`sim_meas2023` samples with `xMax`. The experiment scripts under
+`python/experiments/` use both corrections, so their Xu and Tang medians are
+not a reproduction of the paper. See `simulation-agreement.md`.

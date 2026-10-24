@@ -2,8 +2,8 @@
 
 ## 0.0.0
 
-Geometry, the Gauss-Helmert plane solvers, and the five baseline methods.
-This version is not published to PyPI. Experiment drivers are not included.
+Geometry, the Gauss-Helmert plane solvers, the five baseline methods, and the
+five simulation experiment scripts. This version is not published to PyPI.
 
 ### Added
 
@@ -16,17 +16,25 @@ This version is not published to PyPI. Experiment drivers are not included.
 - `calib.plane_jnt_gh`, `calib.plane_alt_gh`, and `calib.plane_jnt_gh_decoupled`,
   one shared Gauss-Helmert loop. Checked against the Octave plane fixtures and,
   for the joint solver, the ten saved real plane sessions.
-- `sim.sim_plane`. Its random stream is NumPy's, so it reproduces a seed of
-  this function and not the committed Octave fixture.
+- `sim.sim_plane` and `sim.sim_plane_batch`. A seed of `sim_plane` reproduces
+  that function. `sim_plane_batch` draws many sessions for plane-fit residuals
+  and does not replay sequential `sim_plane` calls.
 - Baseline solvers `plane_tro2016`, `plane_rcim2020`, `plane_iros2015`, and
   `line_rcim2022` (`sphere_meas2023` was already present), plus simulators
   `sim_iros2015`, `sim_rcim2020`, `sim_rcim2022`, and `sim_meas2023`.
 - `docs/bug-impact.md`, from `tests/fixtures/bug_impact.mat`.
+- `experiments/sim_accuracy_vs_{noise_level,number_of_measurements,initial_deviation,image_noise,VFE}.py`,
+  with figures, median (IQR) tables, and `.npz` output. `--n-jobs` gives each
+  trial its own seed. The noise-level plane-fit loop is vectorized.
+- `docs/simulation-agreement.md`.
 
 ### Fixed
 
 - `load_plane_yaml` fits `pOn` and `vOn` on each original profile. Resampling
   to the shortest scan applies only to `scanO`, as in `loadPlaneYAML`.
+- Pytest adds the `python/` directory to `sys.path`, so `import experiments`
+  works when the `pytest` console script is used. `python -m pytest` already
+  put that directory on the path.
 
 ### Fixed in Python only
 
