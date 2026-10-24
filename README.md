@@ -60,12 +60,18 @@ not shadow MATLAB built-ins.
 
 ## Python implementation
 
-A Python package is in [`python/`](python/README.md). The import name is
-`handeye2d`. This repository's MATLAB code is unchanged. The Python tree has
-the geometry utilities, the OCT YAML readers, the Gauss-Helmert plane
-solvers, the five baseline methods and their simulators, the five simulation
-experiment scripts, `real_calibration`, `real_plane`, tests, and Octave
-reference fixtures. `real_sphere` and `measure` are not ported.
+The Python port is [`python/`](python/README.md). The import name is
+`handeye2d`. MATLAB in this repository is unchanged.
+
+- Install, the minimal `plane_jnt_gh` example, the function map, and the
+  commands that reproduce the experiments: [`python/README.md`](python/README.md)
+- The two bugs Python corrects, with the measured effect:
+  [`python/docs/bug-impact.md`](python/docs/bug-impact.md)
+- What a reduced simulation run says about the paper:
+  [`python/docs/simulation-agreement.md`](python/docs/simulation-agreement.md)
+
+`real_sphere` and `measure` are not in the port. Nothing here is published to
+PyPI or Zenodo. Cite the paper in [Citation](#citation).
 
 ## Repository structure
 
@@ -185,7 +191,7 @@ If you use this code or data, please cite:
 }
 ```
 
-GitHub also offers this citation through **Cite this repository** ([`CITATION.cff`](CITATION.cff)).
+GitHub also offers this citation through **Cite this repository** ([`CITATION.cff`](CITATION.cff)). The Python port uses the same article. `CITATION.cff` lists `Python` among its keywords. There is no separate Zenodo record for the port.
 
 ## License
 

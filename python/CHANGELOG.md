@@ -31,6 +31,8 @@ five simulation experiment scripts. This version is not published to PyPI.
   Calibration poses are compared with `result/real_calibration_260219_1146.mat`.
   Plane reconstruction means are in `docs/real-data.md`. `real_sphere` and
   `measure` are not included.
+- Package README quick start, MATLAB-to-Python function map, and citation
+  notes. `CITATION.cff` keywords include `Python`. No PyPI or Zenodo release.
 
 ### Fixed
 

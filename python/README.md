@@ -30,6 +30,50 @@ ruff check src tests tools experiments
 pytest
 ```
 
+## Quick start
+
+This is the Python form of the minimal example in the repository README.
+Run it from this directory. Paths are files on disk; the loaders do not use
+MATLAB's search path. The initial pose is the first scan in
+`data/measure_260219_1144.mat`, which is what `real_calibration` uses.
+`plane_jnt_gh` returns a `PlaneGhResult` (`tO2H`, `RO2H`, `n`, `d`, `tH2W`,
+`RH2W`, `sigma`, `time`).
+
+```python
+from pathlib import Path
+
+import numpy as np
+from scipy.io import loadmat
+
+from handeye2d.calib import plane_jnt_gh
+from handeye2d.fitting import plane_fit
+from handeye2d.io import load_plane_yaml
+
+repo = Path("..")
+measured = loadmat(repo / "data" / "measure_260219_1144.mat")
+t0 = np.asarray(measured["tO2H"], dtype=float).reshape(3, -1)[:, 0]
+R0 = np.asarray(measured["RO2H"], dtype=float).reshape(3, 3, -1)[:, :, 0]
+session = repo / "data" / "oct" / "plane" / "oct_plane_250710_1057.yaml"
+hand_t, hand_R, position, direction, scan = load_plane_yaml(session)
+normal, distance, _residual = plane_fit(t0, R0, hand_t, hand_R, scan)
+result = plane_jnt_gh(
+    t0,
+    R0,
+    normal,
+    distance,
+    np.array([0.1, 0.01]),
+    hand_t,
+    hand_R,
+    position,
+    direction,
+    30,
+    50,
+    1e-5,
+)
+print(result.tO2H)
+print(result.RO2H)
+```
+
 ## Layout
 
 ```text
@@ -56,16 +100,59 @@ python/
    └─ shims/*.m.in         Octave stand-ins, never stored as .m
 ```
 
-Names are snake_case. Batch dimensions come first (`tH2W` as `(m, 3)`,
-`RH2W` as `(m, 3, 3)`, `scanO` as `(m, n_points, 3)`). There is no GPU build
-and no replacement for the missing `*_debug` functions. NumPy's random
+Names are snake_case. Batch axes come first. MATLAB stores the same poses
+with the batch axis last.
+
+| Quantity | MATLAB | Python |
+|---|---|---|
+| `tH2W` | `3×1×m` | `(m, 3)` |
+| `RH2W` | `3×3×m` | `(m, 3, 3)` |
+| `scanO` | `3×n×m` | `(m, n, 3)` |
+| `tO2H` for one pose | `3×1` | `(3,)` |
+| `RO2H` for one pose | `3×3` | `(3, 3)` |
+
+`experiments/real_calibration.py` keeps the saved-mat layout in its `.npz`:
+`alltO2He` is `(3, n, 5)` and `allRO2He` is `(3, 3, n, 5)`. There is no GPU
+build and no replacement for the missing `*_debug` functions. NumPy's random
 stream is not Octave's or MATLAB's, so a seed of `sim_*` does not reproduce a
 committed fixture or a MATLAB experiment table. `plane_tro2016` calls
 `scipy.optimize.least_squares` (`method='trf'`, tolerances `1e-6`) in place
 of `lsqnonlin`.
 
-`real_calibration` and `real_plane` follow scope B. `real_sphere` and
-`measure` are not ported.
+## Function map
+
+| MATLAB | Python |
+|---|---|
+| `hat`, `pagehat` | `so3.hat` |
+| `ExpSO3`, `pageExpSO3` | `so3.exp` |
+| `pageLogSO3` | `so3.log` |
+| `JrSO3`, `pageJrSO3`, `invJrSO3` | `so3.jr`, `so3.jr_inv` |
+| `randSO3` | `so3.random_rotvec(rng)` |
+| `quat2rotm` | `rotations.quat_to_rotm` (scalar first) |
+| `eul2rotm` | `rotations.eul_to_rotm(angles, seq)` |
+| `rotm2eul` | `rotations.rotm_to_eul` |
+| `axang2rotm` | `rotations.axang_to_rotm(axis, theta)` |
+| `rotm2axang` | `rotations.rotm_to_angle` (angle only, radians) |
+| `calibrationError` | `metrics.calibration_error` |
+| `planeFit`, `circleFit` | `fitting.plane_fit`, `fitting.circle_fit` |
+| `loadPlaneYAML`, `loadTestYAML`, `loadMEAS2023YAML` | `io.load_plane_yaml`, `io.load_test_yaml`, `io.load_meas2023_yaml` |
+| `simPlane` | `sim.sim_plane` (`sim.sim_plane_batch` is the vectorized residual helper) |
+| `simIROS2015`, `simRCIM2020`, `simRCIM2022`, `simMEAS2023` | `sim.sim_iros2015`, `sim.sim_rcim2020`, `sim.sim_rcim2022`, `sim.sim_meas2023` |
+| `plane_Jnt_GH`, `plane_Alt_GH`, `plane_Jnt_GH_decoupled` | `calib.plane_jnt_gh`, `calib.plane_alt_gh`, `calib.plane_jnt_gh_decoupled` |
+| `plane_TRO2016`, `plane_RCIM2020`, `plane_IROS2015` | `calib.plane_tro2016`, `calib.plane_rcim2020`, `calib.plane_iros2015` |
+| `line_RCIM2022`, `sphere_MEAS2023` | `calib.line_rcim2022`, `calib.sphere_meas2023` |
+| `evaluation/sim_accuracy_vs_*.m` | `python -m experiments.sim_accuracy_vs_*` |
+| `evaluation/real_calibration.m`, `evaluation/real_plane.m` | `python -m experiments.real_calibration`, `python -m experiments.real_plane` |
+
+`plane_fit` may return `n` or `-n`; `d` flips with the normal. `pagemtimes`
+and `pagemrdivide` are `@` and `np.linalg.solve`. Quartiles in the experiment
+tables use `np.percentile(..., method="hazen")`, which matches MATLAB
+`prctile` plotting positions.
+
+These MATLAB pieces are absent here: `plane_Jnt_GH_gpu`, every `*_debug`
+solver, `sphereFit`, the LiDAR branch of the YAML loaders, `measure.m`,
+`real_sphere.m`, and `real_filter_comparison.m`. The two bug fixes are in
+[Differences from the MATLAB code](#differences-from-the-matlab-code).
 
 ## Simulation experiments
 
@@ -202,8 +289,23 @@ stricter cutoff and, below it, return the identity.
 | `test_experiments.py` | `--n-test 2` smoke for the five simulation scripts, including parallel seeds |
 | `test_real_drivers.py` | `real_calibration` poses against the saved mat; `real_plane` leave-one-out means |
 
+## Citation
+
+Cite the paper. This package is not on PyPI and has no Zenodo record.
+The repository citation file is
+[`../CITATION.cff`](../CITATION.cff); its keywords include `Python`.
+
+```bibtex
+@article{ma2026uncertainty,
+  author  = {Ma, Yan and Lyu, Haitian and Lai, Jiewen and Zhang, Ruiyang and Yuan, Wu and Ren, Hongliang},
+  title   = {Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2-D Optical Coherence Tomography Using a Plane Target},
+  journal = {IEEE Transactions on Robotics},
+  year    = {2026},
+  doi     = {10.1109/TRO.2026.3710397}
+}
+```
+
 ## License
 
 Code is [MIT](LICENSE), the same license as the repository. Datasets under
 `data/` and precomputed results under `result/` stay [CC BY 4.0](../data/LICENSE).
-Please cite the paper above if you use either.
