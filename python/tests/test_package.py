@@ -15,4 +15,4 @@ def test_version_matches_pyproject(python_root: Path) -> None:
 
 def test_package_exports_the_foundation_modules() -> None:
     exported = sorted(name for name in vars(handeye2d) if not name.startswith("_"))
-    assert exported == ["calib", "fitting", "io", "metrics", "rotations", "so3"]
+    assert exported == ["calib", "fitting", "io", "metrics", "rotations", "sim", "so3"]

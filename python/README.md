@@ -5,10 +5,11 @@ for *Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2-D Optical
 Coherence Tomography Using a Plane Target* (IEEE T-RO, 2026,
 [10.1109/TRO.2026.3710397](https://doi.org/10.1109/TRO.2026.3710397)).
 
-**This tree has the geometry utilities, the OCT YAML readers, and the MEAS2023
-closed form.** The Gauss-Helmert solver, the other baselines, and the
-simulators are not ported yet, and nothing here is published to PyPI. The
-import name and the distribution name are both `handeye2d`.
+**This tree has the geometry utilities, the OCT YAML readers, the MEAS2023
+closed form, the three Gauss-Helmert plane solvers, and `sim_plane`.** The
+other baselines and the experiment scripts are not ported yet, and nothing
+here is published to PyPI. The import name and the distribution name are both
+`handeye2d`.
 
 The MATLAB code at the repository root is unchanged.
 
@@ -39,7 +40,10 @@ python/
 │  ├─ fitting.py           plane_fit, circle_fit
 │  ├─ metrics.py           calibration_error
 │  ├─ io.py                OCT YAML readers
-│  └─ calib/sphere_meas2023.py
+│  ├─ sim/sim_plane.py     synthetic plane scans
+│  └─ calib/
+│     ├─ plane_gh.py       joint, alternating, and decoupled Gauss-Helmert
+│     └─ sphere_meas2023.py
 ├─ tests/fixtures/         committed Octave oracles (MAT v7)
 └─ tools/octave/
    ├─ export_fixtures.m    only .m file under python/
@@ -50,8 +54,9 @@ python/
 
 Names are snake_case. Batch dimensions come first (`tH2W` as `(m, 3)`,
 `RH2W` as `(m, 3, 3)`, `scanO` as `(m, n_points, 3)`). There is no GPU build
-and no replacement for the missing `*_debug` functions. `sim` and the
-remaining `calib` solvers are later milestones.
+and no replacement for the missing `*_debug` functions. The remaining
+baseline solvers and the `evaluation/sim_*.m` experiment scripts are later
+milestones.
 
 Real-data scripts that come later follow scope B: the YAML loaders are in
 place; `real_calibration` and `real_plane` are not.
@@ -121,7 +126,9 @@ stricter cutoff and, below it, return the identity.
 | `test_fitting.py`, `test_metrics.py` | circle and plane fits; `calibration_error` against every fixture that stored it |
 | `test_io.py` | units, MATLAB `round(linspace)`, MEAS grouping, no LiDAR branch |
 | `test_sphere_meas2023.py` | closed form against `sphere_meas2023.mat` and a known pose |
-| `test_real_data.py` | ten MEAS2023 sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat`; plane sessions load and fit |
+| `test_plane_gh.py` | joint, alternating, and decoupled solvers against the Octave plane fixtures |
+| `test_sim_plane.py` | Euler grid, plane incidence, and a reproducible NumPy stream |
+| `test_real_data.py` | ten MEAS2023 sessions and ten `plane_jnt_gh` sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat` |
 
 ## License
 

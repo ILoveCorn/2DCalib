@@ -59,19 +59,23 @@ def test_plane_loader_resamples_with_matlab_rounding(
 ) -> None:
     monkeypatch.setattr(io, "_MAX_OCT_POINTS", 4)
     long_x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    long_z = [0.0, 0.0, 0.0, 0.0, 0.0, 6.0]
     short_x = [0.0, 1.0, 2.0, 3.0]
     document = {
         "captures": [
-            _capture(long_x, long_x, (0.0, 0.0, 0.0), None),
+            _capture(long_x, long_z, (0.0, 0.0, 0.0), None),
             _capture(short_x, short_x, (0.0, 0.0, 0.0), None),
         ]
     }
     path = tmp_path / "oct_plane_resample.yaml"
     path.write_text(yaml.safe_dump(document), encoding="utf-8")
-    *_, scan = io.load_plane_yaml(path)
+    _, _, position, direction, scan = io.load_plane_yaml(path)
     assert scan.shape == (2, 4, 3)
     np.testing.assert_allclose(scan[0, :, 0], [0.0, 2.0, 3.0, 5.0])
     np.testing.assert_allclose(scan[1, :, 0], short_x)
+    # The line uses every original sample. Resampling would move this mean.
+    np.testing.assert_allclose(position[0], [2.5, 0.0, 1.0])
+    np.testing.assert_allclose(direction[0, 1], 0.0)
 
 
 def test_meas_loader_groups_column_major_and_clips_the_radius(tmp_path: Path) -> None:
