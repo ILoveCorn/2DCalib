@@ -64,8 +64,8 @@ A Python package is in [`python/`](python/README.md). The import name is
 `handeye2d`. This repository's MATLAB code is unchanged. The Python tree has
 the geometry utilities, the OCT YAML readers, the Gauss-Helmert plane
 solvers, the five baseline methods and their simulators, the five simulation
-experiment scripts, tests, and Octave reference fixtures. `real_calibration`
-and `real_plane` are not ported.
+experiment scripts, `real_calibration`, `real_plane`, tests, and Octave
+reference fixtures. `real_sphere` and `measure` are not ported.
 
 ## Repository structure
 
