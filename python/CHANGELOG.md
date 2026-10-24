@@ -39,4 +39,6 @@ MATLAB sources are unchanged. See `docs/bug-impact.md`.
   `fun/sim/simMEAS2023.m:90` uses `zMax`.
 - `plane_tro2016` stops on the flat shoulder of the Euler-angle cost, where
   `lsqnonlin` stops. SciPy's relative function tolerance would otherwise
-  continue into a lower, distant basin.
+  continue into a lower, distant basin. SciPy builds that still accept
+  Python 3.10 have no `least_squares` callback, so that stop also runs from
+  the Jacobian evaluated at each accepted point.

@@ -13,7 +13,10 @@ function tolerance walks off that shoulder into a lower but distant basin
 and that pose is the one that matches the measured hand-eye. The rotation
 solve therefore returns the last Gauss-Newton iterate at which the
 first-order optimality ``||J^T F||_∞`` was still decreasing, once that
-measure has fallen below ``5e-4``.
+measure has fallen below ``5e-4``. SciPy 1.16 and later report those iterates
+through ``least_squares(..., callback=)``. SciPy 1.15, which is what Python
+3.10 can install, has no callback argument, so the same check runs from the
+Jacobian that the solver requests at each accepted point.
 
 ``rotm2eul`` / ``eul2rotm`` use the default ``ZYX`` sequence. ``scanO`` is
 ``(m, n_points, 3)``. ``vOn`` is ``(m, 3)``.
@@ -21,10 +24,12 @@ measure has fallen below ``5e-4``.
 
 from __future__ import annotations
 
+import inspect
 import time
 
 import numpy as np
 from scipy.optimize import least_squares
+from scipy.optimize._numdiff import approx_derivative
 
 from handeye2d.rotations import eul_to_rotm, rotm_to_eul
 
@@ -84,29 +89,60 @@ def plane_tro2016(
     return np.asarray(translation_fit.x, dtype=float).reshape(3), rotation, normal, elapsed
 
 
+class _ShoulderStop(Exception):
+    """The next accepted point left the shoulder. SciPy 1.15 cannot use ``callback``."""
+
+
 def _least_squares_on_shoulder(fun, x0: np.ndarray) -> np.ndarray:
     """Trust-region least squares that stays on the ``lsqnonlin`` shoulder."""
     start = np.asarray(x0, dtype=float).reshape(-1).copy()
     state = {"x": start, "opt": _optimality(fun, start)}
 
-    def callback(*, intermediate_result) -> None:
-        point = np.asarray(intermediate_result.x, dtype=float).reshape(-1).copy()
-        opt = _optimality(fun, point)
+    def remember(point: np.ndarray) -> None:
+        flat = np.asarray(point, dtype=float).reshape(-1).copy()
+        opt = _optimality(fun, flat)
         if opt > state["opt"] and state["opt"] < _SHOULDER:
-            raise StopIteration
-        state["x"] = point
+            raise _ShoulderStop
+        state["x"] = flat
         state["opt"] = opt
 
-    least_squares(
-        fun,
-        start,
-        method="trf",
-        ftol=_TOL,
-        xtol=_TOL,
-        gtol=_TOL,
-        max_nfev=100 * start.size,
-        callback=callback,
-    )
+    if "callback" in inspect.signature(least_squares).parameters:
+
+        def callback(*, intermediate_result) -> None:
+            try:
+                remember(intermediate_result.x)
+            except _ShoulderStop:
+                raise StopIteration from None
+
+        least_squares(
+            fun,
+            start,
+            method="trf",
+            ftol=_TOL,
+            xtol=_TOL,
+            gtol=_TOL,
+            max_nfev=100 * start.size,
+            callback=callback,
+        )
+        return state["x"]
+
+    def jacobian(point: np.ndarray) -> np.ndarray:
+        remember(point)
+        return approx_derivative(fun, np.asarray(point, dtype=float), method="2-point")
+
+    try:
+        least_squares(
+            fun,
+            start,
+            jac=jacobian,
+            method="trf",
+            ftol=_TOL,
+            xtol=_TOL,
+            gtol=_TOL,
+            max_nfev=100 * start.size,
+        )
+    except _ShoulderStop:
+        return state["x"]
     return state["x"]
 
 
