@@ -6,10 +6,10 @@ Coherence Tomography Using a Plane Target* (IEEE T-RO, 2026,
 [10.1109/TRO.2026.3710397](https://doi.org/10.1109/TRO.2026.3710397)).
 
 **This tree has the geometry utilities, the OCT YAML readers, the five
-baseline solvers and their simulators, and the three Gauss-Helmert plane
-solvers.** The `evaluation/sim_*.m` experiment scripts and the `real_plane` /
-`real_calibration` drivers are not ported, and nothing here is published to
-PyPI. The import name and the distribution name are both `handeye2d`.
+baseline solvers and their simulators, the three Gauss-Helmert plane
+solvers, and the five simulation experiment scripts.** `real_plane` and
+`real_calibration` are not ported, and nothing here is published to PyPI.
+The import name and the distribution name are both `handeye2d`.
 
 The MATLAB code at the repository root is unchanged.
 
@@ -18,14 +18,14 @@ The MATLAB code at the repository root is unchanged.
 From this directory:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,experiments]"
 ```
 
 Python 3.10 or newer. Runtime dependencies are NumPy, SciPy, and PyYAML.
-`experiments` (matplotlib, tqdm) is reserved for the later experiment scripts.
+The `experiments` extra adds matplotlib and tqdm for the simulation scripts.
 
 ```bash
-ruff check src tests tools
+ruff check src tests tools experiments
 pytest
 ```
 
@@ -43,7 +43,9 @@ python/
 │  ├─ sim/                 sim_plane, sim_iros2015, sim_rcim2020,
 │  │                       sim_rcim2022, sim_meas2023
 │  └─ calib/               Gauss-Helmert solvers and the five baselines
+├─ experiments/            sim_accuracy_vs_*.py, figures, and tables
 ├─ docs/bug-impact.md      measured effect of the two MATLAB bugs
+├─ docs/simulation-agreement.md
 ├─ tests/fixtures/         committed Octave oracles (MAT v7)
 └─ tools/octave/
    ├─ export_fixtures.m    only .m file under python/
@@ -54,14 +56,50 @@ python/
 
 Names are snake_case. Batch dimensions come first (`tH2W` as `(m, 3)`,
 `RH2W` as `(m, 3, 3)`, `scanO` as `(m, n_points, 3)`). There is no GPU build
-and no replacement for the missing `*_debug` functions. The
-`evaluation/sim_*.m` experiment scripts are a later milestone. NumPy's random
+and no replacement for the missing `*_debug` functions. NumPy's random
 stream is not Octave's or MATLAB's, so a seed of `sim_*` does not reproduce a
-committed fixture. `plane_tro2016` calls `scipy.optimize.least_squares`
-(`method='trf'`, tolerances `1e-6`) in place of `lsqnonlin`.
+committed fixture or a MATLAB experiment table. `plane_tro2016` calls
+`scipy.optimize.least_squares` (`method='trf'`, tolerances `1e-6`) in place
+of `lsqnonlin`.
 
 Real-data scripts that come later follow scope B: the YAML loaders are in
 place; `real_calibration` and `real_plane` are not.
+
+## Simulation experiments
+
+From this directory, with the `experiments` extra installed:
+
+```bash
+python -m experiments.sim_accuracy_vs_noise_level --n-test 100 --n-jobs 4 --no-show
+python -m experiments.sim_accuracy_vs_number_of_measurements --n-test 100 --n-jobs 4 --no-show
+python -m experiments.sim_accuracy_vs_initial_deviation --n-test 100 --n-jobs 4 --no-show
+python -m experiments.sim_accuracy_vs_image_noise --n-test 100 --n-jobs 4 --no-show
+python -m experiments.sim_accuracy_vs_VFE --n-test 100 --n-jobs 4 --no-show
+```
+
+Each script takes `--n-test`, `--seed`, `--n-jobs`, `--out`, and `--no-show`.
+The noise-level script also takes `--n-plane-fit` (default 50). Every trial
+gets its own `SeedSequence`, so the sample does not depend on `--n-jobs`.
+Outputs are a `.npz` of the raw errors, a median (IQR) table, and the figures
+under `--out` (default `experiments/output/`).
+
+The noise-level and measurement-count scripts run Xu, the proposed
+Gauss-Helmert method, Kang (TRO 2016), Sharifzadeh (RCIM 2020), Carlson
+(IROS 2015), and Tang (MEAS 2023). They do not run the alternating
+Gauss-Helmert ablation, the decoupled ablation, or a GPU solver. Kang and
+Sharifzadeh reuse the plane cloud drawn for the proposed method. The 50
+plane-fit clouds are drawn by `sim_plane_batch` on a second seed. The initial
+deviation script calls `plane_jnt_gh` and does not report inner or outer
+iteration counts. Its time column is milliseconds, which is what the MATLAB
+`fprintf` prints; that file's column header says seconds.
+
+Xu and Tang will not reproduce the paper's simulation tables. `line_rcim2022`
+fixes the column index at `fun/calib/line_RCIM2022.m:58`, and `sim_meas2023`
+clips the arc with `xMax` instead of `zMax` at `fun/sim/simMEAS2023.m:90`.
+The measured effect of those two edits is in
+[`docs/bug-impact.md`](docs/bug-impact.md). What a reduced NumPy run does and
+does not say about the paper is in
+[`docs/simulation-agreement.md`](docs/simulation-agreement.md).
 
 ## Octave fixtures
 
@@ -94,9 +132,9 @@ uses a 6 by 6 Euler grid: a 4 by 4 grid leaves only four shots per plane after
 Two bugs stay in `fun/` and are patched only on the temporary copy that builds
 these fixtures. Python implements the corrected behavior and does not keep
 the original one. The measured effect is in
-[`docs/bug-impact.md`](docs/bug-impact.md). Because of those corrections, a
-later Monte Carlo of the Xu and Tang baselines will not reproduce the paper's
-simulation tables.
+[`docs/bug-impact.md`](docs/bug-impact.md). The simulation scripts use those
+corrections, so the Xu and Tang columns are not a reproduction of the paper.
+See [`docs/simulation-agreement.md`](docs/simulation-agreement.md).
 
 | Location | MATLAB | Corrected reference |
 |---|---|---|
@@ -136,6 +174,7 @@ stricter cutoff and, below it, return the identity.
 | `test_baselines.py` | RCIM2020, IROS2015, and RCIM2022 against the Octave fixtures; the patched `ub` column index |
 | `test_sim_baselines.py` | deterministic simulator orientations, noiseless pose recovery, and the `xMax` arc |
 | `test_real_data.py` | ten MEAS2023, `plane_jnt_gh`, `plane_rcim2020`, and `plane_tro2016` sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat` |
+| `test_experiments.py` | `--n-test 2` smoke for the five simulation scripts, including parallel seeds |
 
 ## License
 
