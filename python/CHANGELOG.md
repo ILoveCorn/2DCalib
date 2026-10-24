@@ -27,6 +27,10 @@ five simulation experiment scripts. This version is not published to PyPI.
   with figures, median (IQR) tables, and `.npz` output. `--n-jobs` gives each
   trial its own seed. The noise-level plane-fit loop is vectorized.
 - `docs/simulation-agreement.md`.
+- `experiments/real_calibration.py` and `experiments/real_plane.py`.
+  Calibration poses are compared with `result/real_calibration_260219_1146.mat`.
+  Plane reconstruction means are in `docs/real-data.md`. `real_sphere` and
+  `measure` are not included.
 
 ### Fixed
 

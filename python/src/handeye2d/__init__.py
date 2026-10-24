@@ -3,8 +3,10 @@
 Distribution and import name: ``handeye2d``. This version has the SO(3)
 utilities, rotation conversions, plane and circle fits, the calibration
 error, the OCT YAML readers, the Gauss-Helmert plane solvers, and the five
-baseline methods with their simulators. The five simulation drivers live in
-``python/experiments`` and are not part of this import package.
+baseline methods with their simulators. The simulation drivers and
+``real_calibration`` / ``real_plane`` live in ``python/experiments`` and are
+not part of this import package. ``real_sphere`` and ``measure`` are not
+ported.
 
 Array batches come first (``tH2W`` as ``(m, 3)``, ``RH2W`` as ``(m, 3, 3)``,
 ``scanO`` as ``(m, n_points, 3)``). Function names are snake_case. Numeric

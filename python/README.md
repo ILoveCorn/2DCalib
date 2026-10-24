@@ -7,8 +7,9 @@ Coherence Tomography Using a Plane Target* (IEEE T-RO, 2026,
 
 **This tree has the geometry utilities, the OCT YAML readers, the five
 baseline solvers and their simulators, the three Gauss-Helmert plane
-solvers, and the five simulation experiment scripts.** `real_plane` and
-`real_calibration` are not ported, and nothing here is published to PyPI.
+solvers, the five simulation experiment scripts, and the real-data drivers
+`real_calibration` and `real_plane`.** `real_sphere` and `measure` are not
+ported, and nothing here is published to PyPI.
 The import name and the distribution name are both `handeye2d`.
 
 The MATLAB code at the repository root is unchanged.
@@ -43,9 +44,10 @@ python/
 │  ├─ sim/                 sim_plane, sim_iros2015, sim_rcim2020,
 │  │                       sim_rcim2022, sim_meas2023
 │  └─ calib/               Gauss-Helmert solvers and the five baselines
-├─ experiments/            sim_accuracy_vs_*.py, figures, and tables
+├─ experiments/            sim_accuracy_vs_*.py, real_calibration, real_plane
 ├─ docs/bug-impact.md      measured effect of the two MATLAB bugs
 ├─ docs/simulation-agreement.md
+├─ docs/real-data.md       plane reconstruction means on the saved mat
 ├─ tests/fixtures/         committed Octave oracles (MAT v7)
 └─ tools/octave/
    ├─ export_fixtures.m    only .m file under python/
@@ -62,8 +64,8 @@ committed fixture or a MATLAB experiment table. `plane_tro2016` calls
 `scipy.optimize.least_squares` (`method='trf'`, tolerances `1e-6`) in place
 of `lsqnonlin`.
 
-Real-data scripts that come later follow scope B: the YAML loaders are in
-place; `real_calibration` and `real_plane` are not.
+`real_calibration` and `real_plane` follow scope B. `real_sphere` and
+`measure` are not ported.
 
 ## Simulation experiments
 
@@ -100,6 +102,29 @@ The measured effect of those two edits is in
 [`docs/bug-impact.md`](docs/bug-impact.md). What a reduced NumPy run does and
 does not say about the paper is in
 [`docs/simulation-agreement.md`](docs/simulation-agreement.md).
+
+## Real data
+
+From this directory:
+
+```bash
+python -m experiments.real_calibration --out experiments/output
+python -m experiments.real_plane --out experiments/output
+```
+
+`real_calibration` reads `data/measure_260219_1144.mat` and the ten plane and
+ten sphere sessions. Every plane method starts from the first measured pose.
+It writes `experiments/output/real_calibration.npz` and does not write into
+`result/`. Poses are compared with `result/real_calibration_260219_1146.mat`.
+Wall-clock time is not. Session order is the sorted file name, which matches
+that mat after `oct_checkerboard` is renamed to `oct_plane`.
+
+`real_plane` loads that mat unless `--calibration` points at an `.npz` from
+the command above. For the three plane methods, the session used to calibrate
+is left out. MEAS 2023 and the measured poses are scored on every test
+session. The printed means are in [`docs/real-data.md`](docs/real-data.md).
+
+`real_sphere` and `measure` are not ported.
 
 ## Octave fixtures
 
@@ -175,6 +200,7 @@ stricter cutoff and, below it, return the identity.
 | `test_sim_baselines.py` | deterministic simulator orientations, noiseless pose recovery, and the `xMax` arc |
 | `test_real_data.py` | ten MEAS2023, `plane_jnt_gh`, `plane_rcim2020`, and `plane_tro2016` sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat` |
 | `test_experiments.py` | `--n-test 2` smoke for the five simulation scripts, including parallel seeds |
+| `test_real_drivers.py` | `real_calibration` poses against the saved mat; `real_plane` leave-one-out means |
 
 ## License
 
