@@ -1,8 +1,9 @@
 """L2 checks against the saved MATLAB real-calibration result.
 
 Method 1 is ``plane_jnt_gh`` on the ten plane sessions. MEAS2023 is the ten
-sphere sessions. The measured slot is the fiducial registration in
-``data/measure_260219_1144.mat``. TRO2016 and RCIM2020 are not compared.
+sphere sessions. ``plane_rcim2020`` is compared tightly, and ``plane_tro2016``
+loosely, on the same plane sessions. The measured slot is the fiducial
+registration in ``data/measure_260219_1144.mat``.
 """
 
 from __future__ import annotations
@@ -13,9 +14,10 @@ import numpy as np
 import pytest
 from scipy.io import loadmat
 
-from handeye2d.calib import plane_jnt_gh, sphere_meas2023
+from handeye2d.calib import plane_jnt_gh, plane_rcim2020, plane_tro2016, sphere_meas2023
 from handeye2d.fitting import plane_fit
 from handeye2d.io import load_meas2023_yaml, load_plane_yaml
+from handeye2d.metrics import calibration_error
 
 _RESULT = "real_calibration_260219_1146.mat"
 _MEASURE = "measure_260219_1144.mat"
@@ -115,6 +117,57 @@ def test_plane_jnt_gh_matches_every_saved_plane_session(
         np.testing.assert_allclose(
             result.RO2H, real_result["allRO2He"][:, :, index, 0], atol=1e-8, err_msg=name
         )
+
+
+def test_plane_rcim2020_matches_every_saved_plane_session(
+    real_result: dict[str, np.ndarray], repo_root: Path
+) -> None:
+    legacy = _cells(real_result["planeFiles"])
+    names = [name.replace("oct_checkerboard", "oct_plane") for name in legacy]
+    initial_t = real_result["alltO2He"][:, 0, 4]
+    initial_R = real_result["allRO2He"][:, :, 0, 4]
+    tolerance = float(np.reshape(real_result["tol"], ()))
+    for index, name in enumerate(names):
+        path = repo_root / "data" / "oct" / "plane" / name
+        translation, rotation, position, _direction, _scan = load_plane_yaml(path)
+        estimated_t, estimated_R, _normal, _elapsed = plane_rcim2020(
+            initial_t,
+            initial_R,
+            translation,
+            rotation,
+            position,
+            tolerance,
+        )
+        saved_t = real_result["alltO2He"][:, index, 2]
+        saved_R = real_result["allRO2He"][:, :, index, 2]
+        np.testing.assert_allclose(estimated_t, saved_t, atol=1e-8, err_msg=name)
+        _position, angle = calibration_error(saved_t, saved_R, estimated_t, estimated_R)
+        assert float(angle) <= 1e-4, name
+
+
+def test_plane_tro2016_matches_every_saved_plane_session(
+    real_result: dict[str, np.ndarray], repo_root: Path
+) -> None:
+    """Optimizer agreement on the ten saved sessions.
+
+    The largest gap on this result file is 0.033 mm and 0.0054 deg, on
+    ``oct_plane_250712_1941.yaml``. The bounds below sit just above that.
+    """
+    legacy = _cells(real_result["planeFiles"])
+    names = [name.replace("oct_checkerboard", "oct_plane") for name in legacy]
+    initial_t = real_result["alltO2He"][:, 0, 4]
+    initial_R = real_result["allRO2He"][:, :, 0, 4]
+    for index, name in enumerate(names):
+        path = repo_root / "data" / "oct" / "plane" / name
+        translation, rotation, _position, direction, scan = load_plane_yaml(path)
+        estimated_t, estimated_R, _normal, _elapsed = plane_tro2016(
+            initial_t, initial_R, translation, rotation, direction, scan
+        )
+        saved_t = real_result["alltO2He"][:, index, 1]
+        saved_R = real_result["allRO2He"][:, :, index, 1]
+        position_error, angle_error = calibration_error(saved_t, saved_R, estimated_t, estimated_R)
+        assert float(position_error) <= 5e-2, name
+        assert float(angle_error) <= 1e-2, name
 
 
 def test_plane_sessions_load_and_fit(real_result: dict[str, np.ndarray], repo_root: Path) -> None:

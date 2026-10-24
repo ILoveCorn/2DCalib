@@ -62,9 +62,9 @@ not shadow MATLAB built-ins.
 
 A Python package is in [`python/`](python/README.md). The import name is
 `handeye2d`. This repository's MATLAB code is unchanged. The Python tree has
-the geometry utilities, the OCT YAML readers, the MEAS2023 closed form, the
-Gauss-Helmert plane solvers, the plane simulator, tests, and Octave reference
-fixtures. The other baselines are not ported yet.
+the geometry utilities, the OCT YAML readers, the Gauss-Helmert plane
+solvers, the five baseline methods and their simulators, tests, and Octave
+reference fixtures. The experiment scripts are not ported.
 
 ## Repository structure
 
@@ -75,7 +75,7 @@ fixtures. The other baselines are not ported yet.
 │  ├─ oct/sphere/      Sphere target datasets (10 sessions)
 │  └─ measure_*.mat    Reference hand-eye transformations from fiducial registration
 ├─ evaluation/         Simulation and real-world experiment scripts
-├─ python/             Python package (geometry, Gauss-Helmert, MEAS2023) and Octave fixtures
+├─ python/             Python package (Gauss-Helmert, five baselines) and Octave fixtures
 ├─ fun/
 │  ├─ calib/           Proposed method, its variants, and baseline methods
 │  ├─ sim/             Synthetic data generators
@@ -128,7 +128,7 @@ The step 3 scripts load the precomputed `result/real_calibration_260219_1146.mat
 - `sim_accuracy_vs_initial_deviation.m` calls `plane_Jnt_GH_debug`, which reports iteration counts and is not included in this repository.
 - Method 3 in `sim_accuracy_vs_noise_level.m` calls `plane_Alt_GH_debug`, which is not included. It is disabled by default.
 - `real_filter_comparison.m` needs the unfiltered raw recording `oct_checkerboard_250714_2030_distorted.yaml`, which is not included.
-- `fun/calib/line_RCIM2022.m` (line 58) and `fun/sim/simMEAS2023.m` (line 90) each contain a known bug. They are left unchanged here. The Python fixtures measure the effect; see [`python/README.md`](python/README.md).
+- `fun/calib/line_RCIM2022.m` (line 58) and `fun/sim/simMEAS2023.m` (line 90) each contain a known bug. They are left unchanged here. Python uses the corrected behavior. The measured effect is in [`python/docs/bug-impact.md`](python/docs/bug-impact.md).
 
 ## Using your own data
 
