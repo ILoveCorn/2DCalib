@@ -2,8 +2,8 @@
 
 ## 0.0.0
 
-Geometry, the MEAS2023 closed form, and the Gauss-Helmert plane solvers.
-This version is not published to PyPI. The other baselines are not included.
+Geometry, the Gauss-Helmert plane solvers, and the five baseline methods.
+This version is not published to PyPI. Experiment drivers are not included.
 
 ### Added
 
@@ -18,18 +18,27 @@ This version is not published to PyPI. The other baselines are not included.
   for the joint solver, the ten saved real plane sessions.
 - `sim.sim_plane`. Its random stream is NumPy's, so it reproduces a seed of
   this function and not the committed Octave fixture.
+- Baseline solvers `plane_tro2016`, `plane_rcim2020`, `plane_iros2015`, and
+  `line_rcim2022` (`sphere_meas2023` was already present), plus simulators
+  `sim_iros2015`, `sim_rcim2020`, `sim_rcim2022`, and `sim_meas2023`.
+- `docs/bug-impact.md`, from `tests/fixtures/bug_impact.mat`.
 
 ### Fixed
 
 - `load_plane_yaml` fits `pOn` and `vOn` on each original profile. Resampling
   to the shortest scan applies only to `scanO`, as in `loadPlaneYAML`.
 
-### Noted bugs (fixed only when generating Python reference data)
+### Fixed in Python only
 
-MATLAB sources are unchanged.
+MATLAB sources are unchanged. See `docs/bug-impact.md`.
 
-- `fun/calib/line_RCIM2022.m:58` writes every pose's line direction into the
-  same columns, `ub(:,(1:(mt-1))+(mt-1))`. The reference patch uses
-  `(1:(mt-1))+(mt-1)*(i-1)`.
-- `fun/sim/simMEAS2023.m:90` clips the sample arc with `zMax` instead of
-  `xMax`.
+- `line_rcim2022` writes pose `i` into columns `(1:(mt-1))+(mt-1)*(i-1)`.
+  `fun/calib/line_RCIM2022.m:58` writes every pose into
+  `ub(:,(1:(mt-1))+(mt-1))`.
+- `sim_meas2023` clips the sample arc with `xMax`.
+  `fun/sim/simMEAS2023.m:90` uses `zMax`.
+- `plane_tro2016` stops on the flat shoulder of the Euler-angle cost, where
+  `lsqnonlin` stops. SciPy's relative function tolerance would otherwise
+  continue into a lower, distant basin. SciPy builds that still accept
+  Python 3.10 have no `least_squares` callback, so that stop also runs from
+  the Jacobian evaluated at each accepted point.

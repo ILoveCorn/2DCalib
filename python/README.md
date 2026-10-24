@@ -5,11 +5,11 @@ for *Uncertainty-Aware Cross-Scale Hand-Eye Calibration of 2-D Optical
 Coherence Tomography Using a Plane Target* (IEEE T-RO, 2026,
 [10.1109/TRO.2026.3710397](https://doi.org/10.1109/TRO.2026.3710397)).
 
-**This tree has the geometry utilities, the OCT YAML readers, the MEAS2023
-closed form, the three Gauss-Helmert plane solvers, and `sim_plane`.** The
-other baselines and the experiment scripts are not ported yet, and nothing
-here is published to PyPI. The import name and the distribution name are both
-`handeye2d`.
+**This tree has the geometry utilities, the OCT YAML readers, the five
+baseline solvers and their simulators, and the three Gauss-Helmert plane
+solvers.** The `evaluation/sim_*.m` experiment scripts and the `real_plane` /
+`real_calibration` drivers are not ported, and nothing here is published to
+PyPI. The import name and the distribution name are both `handeye2d`.
 
 The MATLAB code at the repository root is unchanged.
 
@@ -40,10 +40,10 @@ python/
 │  ├─ fitting.py           plane_fit, circle_fit
 │  ├─ metrics.py           calibration_error
 │  ├─ io.py                OCT YAML readers
-│  ├─ sim/sim_plane.py     synthetic plane scans
-│  └─ calib/
-│     ├─ plane_gh.py       joint, alternating, and decoupled Gauss-Helmert
-│     └─ sphere_meas2023.py
+│  ├─ sim/                 sim_plane, sim_iros2015, sim_rcim2020,
+│  │                       sim_rcim2022, sim_meas2023
+│  └─ calib/               Gauss-Helmert solvers and the five baselines
+├─ docs/bug-impact.md      measured effect of the two MATLAB bugs
 ├─ tests/fixtures/         committed Octave oracles (MAT v7)
 └─ tools/octave/
    ├─ export_fixtures.m    only .m file under python/
@@ -54,9 +54,11 @@ python/
 
 Names are snake_case. Batch dimensions come first (`tH2W` as `(m, 3)`,
 `RH2W` as `(m, 3, 3)`, `scanO` as `(m, n_points, 3)`). There is no GPU build
-and no replacement for the missing `*_debug` functions. The remaining
-baseline solvers and the `evaluation/sim_*.m` experiment scripts are later
-milestones.
+and no replacement for the missing `*_debug` functions. The
+`evaluation/sim_*.m` experiment scripts are a later milestone. NumPy's random
+stream is not Octave's or MATLAB's, so a seed of `sim_*` does not reproduce a
+committed fixture. `plane_tro2016` calls `scipy.optimize.least_squares`
+(`method='trf'`, tolerances `1e-6`) in place of `lsqnonlin`.
 
 Real-data scripts that come later follow scope B: the YAML loaders are in
 place; `real_calibration` and `real_plane` are not.
@@ -90,8 +92,11 @@ uses a 6 by 6 Euler grid: a 4 by 4 grid leaves only four shots per plane after
 ## Differences from the MATLAB code
 
 Two bugs stay in `fun/` and are patched only on the temporary copy that builds
-these fixtures. Python will implement the corrected behavior and will not keep
-the original one.
+these fixtures. Python implements the corrected behavior and does not keep
+the original one. The measured effect is in
+[`docs/bug-impact.md`](docs/bug-impact.md). Because of those corrections, a
+later Monte Carlo of the Xu and Tang baselines will not reproduce the paper's
+simulation tables.
 
 | Location | MATLAB | Corrected reference |
 |---|---|---|
@@ -128,7 +133,9 @@ stricter cutoff and, below it, return the identity.
 | `test_sphere_meas2023.py` | closed form against `sphere_meas2023.mat` and a known pose |
 | `test_plane_gh.py` | joint, alternating, and decoupled solvers against the Octave plane fixtures |
 | `test_sim_plane.py` | Euler grid, plane incidence, and a reproducible NumPy stream |
-| `test_real_data.py` | ten MEAS2023 sessions and ten `plane_jnt_gh` sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat` |
+| `test_baselines.py` | RCIM2020, IROS2015, and RCIM2022 against the Octave fixtures; the patched `ub` column index |
+| `test_sim_baselines.py` | deterministic simulator orientations, noiseless pose recovery, and the `xMax` arc |
+| `test_real_data.py` | ten MEAS2023, `plane_jnt_gh`, `plane_rcim2020`, and `plane_tro2016` sessions against `result/real_calibration_260219_1146.mat`; measured slot against `data/measure_260219_1144.mat` |
 
 ## License
 
