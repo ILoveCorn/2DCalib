@@ -10,9 +10,10 @@ are scalar-first. Profile points stay in the OCT frame, with ``y = 0``.
 Batch axes come first:
 
 * ``load_plane_yaml`` returns ``tH2Wn (m, 3)``, ``RH2Wn (m, 3, 3)``,
-  ``pOn (m, 3)``, ``vOn (m, 3)``, ``scanO (m, n_points, 3)``. Every scan is
-  resampled to ``min(5000, shortest scan)`` with MATLAB's ``round(linspace)``
-  (half away from zero), which is not ``np.round``.
+  ``pOn (m, 3)``, ``vOn (m, 3)``, ``scanO (m, n_points, 3)``. ``pOn`` and
+  ``vOn`` are the mean and the degree-1 ``polyfit`` of each original profile.
+  ``scanO`` is a separate resample to ``min(5000, shortest scan)`` with
+  MATLAB's ``round(linspace)`` (half away from zero), which is not ``np.round``.
 * ``load_test_yaml`` keeps each scan at its own length: a tuple of ``(n_i, 3)``
   arrays. ``center_sign_y`` is ``-sign_y`` from ``pose.center_side``, or ``0``
   when that field is absent.
@@ -47,9 +48,11 @@ def load_plane_yaml(
         scans.append(_profile(capture))
         positions.append(_position_mm(capture))
         quaternions.append(_quaternion(capture))
+    # loadPlaneYAML fits the intersection on the raw profile, then resamples
+    # scanO down to the shortest capture. The two steps are not the same points.
+    intersection, direction = _line_from_profiles(scans)
     count = _shortest(scans, _MAX_OCT_POINTS)
     scan = np.stack([_resample(points, count) for points in scans], axis=0)
-    intersection, direction = _line_from_profiles(scan)
     return (
         np.stack(positions, axis=0),
         quat_to_rotm(np.stack(quaternions, axis=0)),
@@ -176,14 +179,17 @@ def _matlab_indices(length: int, count: int) -> np.ndarray:
     return np.floor(grid + 0.5).astype(int) - 1
 
 
-def _line_from_profiles(scan: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """``pOn`` and ``vOn`` from resampled profiles ``(m, n, 3)``."""
-    x = scan[..., 0]
-    z = scan[..., 2]
-    position = np.stack((x.mean(axis=1), np.zeros(x.shape[0]), z.mean(axis=1)), axis=-1)
-    direction = np.empty_like(position)
-    for index in range(x.shape[0]):
-        slope = np.polyfit(x[index], z[index], 1)[0]
+def _line_from_profiles(scans: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
+    """``pOn`` and ``vOn`` from each original profile, before resampling."""
+    position = np.zeros((len(scans), 3))
+    direction = np.zeros((len(scans), 3))
+    for index, scan in enumerate(scans):
+        x = scan[:, 0]
+        z = scan[:, 2]
+        position[index, 0] = float(np.mean(x))
+        position[index, 2] = float(np.mean(z))
+        slope = float(np.polyfit(x, z, 1)[0])
         theta = np.arctan(slope)
-        direction[index] = (np.cos(theta), 0.0, np.sin(theta))
+        direction[index, 0] = float(np.cos(theta))
+        direction[index, 2] = float(np.sin(theta))
     return position, direction

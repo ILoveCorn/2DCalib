@@ -1,9 +1,8 @@
 """L2 checks against the saved MATLAB real-calibration result.
 
-Plane solvers are not ported, so those method slots are not compared. MEAS2023
-is closed form and deterministic: all ten sphere sessions are compared to
-``alltO2He`` / ``allRO2He``. The measured slot is the fiducial registration in
-``data/measure_260219_1144.mat``.
+Method 1 is ``plane_jnt_gh`` on the ten plane sessions. MEAS2023 is the ten
+sphere sessions. The measured slot is the fiducial registration in
+``data/measure_260219_1144.mat``. TRO2016 and RCIM2020 are not compared.
 """
 
 from __future__ import annotations
@@ -14,7 +13,7 @@ import numpy as np
 import pytest
 from scipy.io import loadmat
 
-from handeye2d.calib import sphere_meas2023
+from handeye2d.calib import plane_jnt_gh, sphere_meas2023
 from handeye2d.fitting import plane_fit
 from handeye2d.io import load_meas2023_yaml, load_plane_yaml
 
@@ -76,6 +75,46 @@ def test_meas2023_matches_every_saved_sphere_session(
         estimated_t, estimated_R, _elapsed = sphere_meas2023(translation, rotation, centers)
         np.testing.assert_allclose(estimated_t, real_result["alltO2He"][:, index, 3], atol=1e-8)
         np.testing.assert_allclose(estimated_R, real_result["allRO2He"][:, :, index, 3], atol=1e-8)
+
+
+def test_plane_jnt_gh_matches_every_saved_plane_session(
+    real_result: dict[str, np.ndarray], repo_root: Path
+) -> None:
+    legacy = _cells(real_result["planeFiles"])
+    names = [name.replace("oct_checkerboard", "oct_plane") for name in legacy]
+    assert len(names) == 10
+    # real_calibration uses the first measured pose for every plane session.
+    initial_t = real_result["alltO2He"][:, 0, 4]
+    initial_R = real_result["allRO2He"][:, :, 0, 4]
+    sigma0 = np.asarray(real_result["sigma0"], dtype=float).reshape(-1)
+    inner = int(np.reshape(real_result["iImax"], ()))
+    outer = int(np.reshape(real_result["iOmax"], ()))
+    tolerance = float(np.reshape(real_result["tol"], ()))
+    assert outer == 50
+    for index, name in enumerate(names):
+        path = repo_root / "data" / "oct" / "plane" / name
+        translation, rotation, position, direction, scan = load_plane_yaml(path)
+        normal, distance, _residual = plane_fit(initial_t, initial_R, translation, rotation, scan)
+        result = plane_jnt_gh(
+            initial_t,
+            initial_R,
+            normal,
+            distance,
+            sigma0,
+            translation,
+            rotation,
+            position,
+            direction,
+            inner,
+            outer,
+            tolerance,
+        )
+        np.testing.assert_allclose(
+            result.tO2H, real_result["alltO2He"][:, index, 0], atol=1e-8, err_msg=name
+        )
+        np.testing.assert_allclose(
+            result.RO2H, real_result["allRO2He"][:, :, index, 0], atol=1e-8, err_msg=name
+        )
 
 
 def test_plane_sessions_load_and_fit(real_result: dict[str, np.ndarray], repo_root: Path) -> None:
